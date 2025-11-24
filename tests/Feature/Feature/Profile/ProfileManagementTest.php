@@ -17,7 +17,7 @@ class ProfileManagementTest extends TestCase
 
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->get('/profile');
+        $response = $this->actingAs($user)->get('/my-profile');
 
         $response->assertOk();
     }
@@ -29,7 +29,7 @@ class ProfileManagementTest extends TestCase
             'email' => 'old@example.com',
         ]);
 
-        $response = $this->actingAs($user)->put('/profile', [
+        $response = $this->actingAs($user)->put('/my-profile', [
             'name' => 'New Name',
             'email' => 'new@example.com',
         ]);
@@ -45,7 +45,7 @@ class ProfileManagementTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->put('/profile', [
+        $response = $this->actingAs($user)->put('/my-profile', [
             'name' => 'Test Name',
             'email' => 'invalid-email',
         ]);
@@ -58,7 +58,7 @@ class ProfileManagementTest extends TestCase
         $existingUser = User::factory()->create(['email' => 'existing@example.com']);
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->put('/profile', [
+        $response = $this->actingAs($user)->put('/my-profile', [
             'name' => $user->name,
             'email' => 'existing@example.com',
         ]);
@@ -72,7 +72,7 @@ class ProfileManagementTest extends TestCase
             'password' => bcrypt('old-password'),
         ]);
 
-        $response = $this->actingAs($user)->put('/profile/password', [
+        $response = $this->actingAs($user)->put('/my-profile/password', [
             'current_password' => 'old-password',
             'password' => 'new-password',
             'password_confirmation' => 'new-password',
@@ -90,7 +90,7 @@ class ProfileManagementTest extends TestCase
             'password' => bcrypt('current-password'),
         ]);
 
-        $response = $this->actingAs($user)->put('/profile/password', [
+        $response = $this->actingAs($user)->put('/my-profile/password', [
             'current_password' => 'wrong-password',
             'password' => 'new-password',
             'password_confirmation' => 'new-password',
@@ -105,7 +105,7 @@ class ProfileManagementTest extends TestCase
             'password' => bcrypt('current-password'),
         ]);
 
-        $response = $this->actingAs($user)->put('/profile/password', [
+        $response = $this->actingAs($user)->put('/my-profile/password', [
             'current_password' => 'current-password',
             'password' => 'new-password',
             'password_confirmation' => 'different-password',
@@ -116,14 +116,14 @@ class ProfileManagementTest extends TestCase
 
     public function test_guest_cannot_access_profile(): void
     {
-        $response = $this->get('/profile');
+        $response = $this->get('/my-profile');
 
         $response->assertRedirect('/login');
     }
 
     public function test_guest_cannot_update_profile(): void
     {
-        $response = $this->put('/profile', [
+        $response = $this->put('/my-profile', [
             'name' => 'Test Name',
             'email' => 'test@example.com',
         ]);
@@ -133,7 +133,7 @@ class ProfileManagementTest extends TestCase
 
     public function test_guest_cannot_update_password(): void
     {
-        $response = $this->put('/profile/password', [
+        $response = $this->put('/my-profile/password', [
             'current_password' => 'password',
             'password' => 'new-password',
             'password_confirmation' => 'new-password',

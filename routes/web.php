@@ -29,11 +29,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('users', \App\Http\Controllers\UserController::class);
 });
 
-// Profile Routes
+// My Profile Routes (renamed to avoid conflict with settings routes)
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/profile', [\App\Http\Controllers\ProfileController::class, 'show'])->name('profile.show');
-    Route::put('/profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
-    Route::put('/profile/password', [\App\Http\Controllers\ProfileController::class, 'updatePassword'])->name('profile.password.update');
+    Route::get('/my-profile', [\App\Http\Controllers\ProfileController::class, 'show'])->name('my-profile.show');
+    Route::put('/my-profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('my-profile.update');
+    Route::put('/my-profile/password', [\App\Http\Controllers\ProfileController::class, 'updatePassword'])->name('my-profile.password.update');
 });
 
 require __DIR__.'/settings.php';

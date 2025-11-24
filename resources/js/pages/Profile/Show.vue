@@ -41,12 +41,12 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
     {
         title: 'Profile',
-        href: '/profile',
+        href: '/my-profile',
     },
 ];
 
 function updateProfile() {
-    profileForm.put('/profile', {
+    profileForm.put('/my-profile', {
         preserveScroll: true,
         onSuccess: () => {
             // Profile updated
@@ -55,7 +55,7 @@ function updateProfile() {
 }
 
 function updatePassword() {
-    passwordForm.put('/profile/password', {
+    passwordForm.put('/my-profile/password', {
         preserveScroll: true,
         onSuccess: () => {
             passwordForm.reset();

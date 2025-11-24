@@ -31,7 +31,7 @@ defineProps<Props>();
     <DropdownMenuSeparator />
     <DropdownMenuGroup>
         <DropdownMenuItem :as-child="true">
-            <Link class="block w-full" href="/profile" prefetch as="button">
+            <Link class="block w-full" href="/my-profile" prefetch as="button">
                 <UserCircle class="mr-2 h-4 w-4" />
                 Profile
             </Link>
