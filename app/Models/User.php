@@ -50,4 +50,20 @@ class User extends Authenticatable implements MustVerifyEmail
             'two_factor_confirmed_at' => 'datetime',
         ];
     }
+
+    /**
+     * Get the transactions created by the user.
+     */
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
+    /**
+     * Get the transactions approved by the user.
+     */
+    public function approvedTransactions()
+    {
+        return $this->hasMany(Transaction::class, 'approved_by');
+    }
 }

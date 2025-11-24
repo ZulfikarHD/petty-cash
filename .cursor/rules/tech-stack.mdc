@@ -1,0 +1,60 @@
+---
+alwaysApply: true
+---
+Based on the petty cash application I just built for you, here's your complete tech stack:
+
+## 🛠️ Tech Stack Summary
+
+### **Backend**
+- **PHP** 8.4.1
+- **Laravel** 12 (latest version with streamlined structure)
+- **Database**: MySQL/MariaDB
+- **Authentication**: Laravel Fortify v1
+- **Authorization**: Spatie Permission (role-based access control)
+- **Media Management**: Spatie Laravel Media Library v11
+- **Testing**: PHPUnit v11
+- **Code Quality**: Laravel Pint v1 (PHP code formatter)
+
+### **Frontend**
+- **JavaScript Framework**: Vue 3 (v3.5.13)
+- **SPA Framework**: Inertia.js v2 (@inertiajs/vue3)
+- **CSS Framework**: Tailwind CSS v4 (latest)
+- **UI Components**: Reka UI v2.4.1 (headless components)
+- **Icons**: Lucide Vue Next v0.468.0
+- **Build Tool**: Vite 7
+- **Routing**: Laravel Wayfinder v0 (type-safe routes)
+- **Utilities**:
+  - @vueuse/core (Vue composition utilities)
+  - class-variance-authority (CVA for component variants)
+  - clsx & tailwind-merge (class name utilities)
+
+### **Development Tools**
+- **TypeScript** 5.2.2
+- **ESLint** 9 (JavaScript linter)
+- **Prettier** 3 (code formatter)
+- **Laravel Sail** v1 (Docker development environment)
+- **Composer** (PHP dependency management)
+- **Yarn** (JavaScript package manager - as you specified!)
+
+### **DevOps/Infrastructure**
+- **Docker** (via Laravel Sail)
+- **Git** (version control)
+- **Node.js** (for frontend build)
+
+### **Key Features Implemented**
+- Server-Side Rendering (SSR) support with Inertia
+- Role-based access control (Admin, Accountant, Cashier, Requester)
+- File uploads with image preview
+- Real-time form validation
+- Dark mode support (inherited from UI components)
+- Responsive design (mobile-first)
+- Type-safe routing with Wayfinder
+- Comprehensive testing (42 passing tests)
+
+### **Architecture Pattern**
+- **Backend**: MVC with Service/Observer patterns
+- **Frontend**: Component-based architecture with Vue 3 Composition API
+- **API Style**: Monolithic with Inertia.js (no REST API needed)
+- **Database**: Relational with Eloquent ORM
+
+This is a modern, production-ready stack following Laravel and Vue.js best practices! 🚀

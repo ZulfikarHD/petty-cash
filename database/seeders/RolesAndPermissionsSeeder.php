@@ -29,6 +29,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'manage-transactions',
             'view-transactions',
             'create-transactions',
+            'edit-transactions',
+            'delete-transactions',
             'approve-transactions',
 
             // Reports permissions
@@ -57,6 +59,9 @@ class RolesAndPermissionsSeeder extends Seeder
             'view-users',
             'manage-transactions',
             'view-transactions',
+            'create-transactions',
+            'edit-transactions',
+            'delete-transactions',
             'approve-transactions',
             'view-reports',
             'export-reports',
@@ -68,6 +73,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'manage-transactions',
             'view-transactions',
             'create-transactions',
+            'edit-transactions',
+            'delete-transactions',
         ]);
 
         // Assign permissions to Requester

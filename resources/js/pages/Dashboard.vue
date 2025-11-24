@@ -1,23 +1,68 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { dashboard } from '@/routes';
+import { index as transactionsIndex, show as transactionsShow } from '@/actions/App/Http/Controllers/TransactionController';
 import { type BreadcrumbItem } from '@/types';
-import { Head, usePage } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, UserCheck, UserPlus } from 'lucide-vue-next';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Users, UserCheck, UserPlus, Receipt, Clock, TrendingUp, TrendingDown } from 'lucide-vue-next';
 import PlaceholderPattern from '../components/PlaceholderPattern.vue';
+
+interface TransactionSummary {
+    id: number;
+    transaction_number: string;
+    type: string;
+    amount: string | number;
+    description: string;
+    transaction_date: string;
+    status: string;
+    user: {
+        name: string;
+    };
+}
 
 interface Props {
     stats?: {
         totalUsers?: number;
         verifiedUsers?: number;
         recentUsers?: number;
+        totalTransactions?: number;
+        pendingTransactions?: number;
+        todayCashIn?: number;
+        todayCashOut?: number;
+        recentTransactions?: TransactionSummary[];
     };
 }
 
 defineProps<Props>();
 
 const page = usePage();
+
+function formatCurrency(amount: string | number) {
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+    }).format(Number(amount));
+}
+
+function formatDate(date: string) {
+    return new Date(date).toLocaleDateString('id-ID', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+    });
+}
+
+function getStatusVariant(status: string) {
+    const variants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
+        pending: 'secondary',
+        approved: 'default',
+        rejected: 'destructive',
+    };
+    return variants[status] || 'outline';
+}
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -82,29 +127,163 @@ const breadcrumbs: BreadcrumbItem[] = [
                 </Card>
             </div>
 
-            <!-- Default placeholder if no stats -->
-            <div v-else class="grid auto-rows-min gap-4 md:grid-cols-3">
-                <div
-                    class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-                >
-                    <PlaceholderPattern />
-                </div>
-                <div
-                    class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-                >
-                    <PlaceholderPattern />
-                </div>
-                <div
-                    class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-                >
-                    <PlaceholderPattern />
-                </div>
+            <!-- Transaction Statistics (only if user can view transactions) -->
+            <div v-if="stats && page.props.auth?.can?.viewTransactions" class="grid auto-rows-min gap-4 md:grid-cols-4">
+                <Card>
+                    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle class="text-sm font-medium">
+                            Total Transactions
+                        </CardTitle>
+                        <Receipt class="size-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div class="text-2xl font-bold">{{ stats.totalTransactions || 0 }}</div>
+                        <p class="text-xs text-muted-foreground">
+                            All time transactions
+                        </p>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle class="text-sm font-medium">
+                            Pending
+                        </CardTitle>
+                        <Clock class="size-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div class="text-2xl font-bold">{{ stats.pendingTransactions || 0 }}</div>
+                        <p class="text-xs text-muted-foreground">
+                            Awaiting approval
+                        </p>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle class="text-sm font-medium">
+                            Today's Cash In
+                        </CardTitle>
+                        <TrendingUp class="size-4 text-green-600" />
+                    </CardHeader>
+                    <CardContent>
+                        <div class="text-2xl font-bold text-green-600">
+                            {{ formatCurrency(stats.todayCashIn || 0) }}
+                        </div>
+                        <p class="text-xs text-muted-foreground">
+                            Cash received today
+                        </p>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle class="text-sm font-medium">
+                            Today's Cash Out
+                        </CardTitle>
+                        <TrendingDown class="size-4 text-red-600" />
+                    </CardHeader>
+                    <CardContent>
+                        <div class="text-2xl font-bold text-red-600">
+                            {{ formatCurrency(stats.todayCashOut || 0) }}
+                        </div>
+                        <p class="text-xs text-muted-foreground">
+                            Cash spent today
+                        </p>
+                    </CardContent>
+                </Card>
             </div>
 
-            <div
-                class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border"
-            >
-                <PlaceholderPattern />
+            <!-- Recent Transactions -->
+            <Card v-if="stats?.recentTransactions && stats.recentTransactions.length > 0">
+                <CardHeader>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <CardTitle>Recent Transactions</CardTitle>
+                            <CardDescription>
+                                Latest 5 transactions
+                            </CardDescription>
+                        </div>
+                        <Link :href="transactionsIndex().url">
+                            <span class="text-sm text-primary hover:underline">View all</span>
+                        </Link>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    <div class="rounded-md border">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Transaction #</TableHead>
+                                    <TableHead>Date</TableHead>
+                                    <TableHead>Type</TableHead>
+                                    <TableHead>Amount</TableHead>
+                                    <TableHead>Description</TableHead>
+                                    <TableHead>Created By</TableHead>
+                                    <TableHead>Status</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                <TableRow
+                                    v-for="transaction in stats.recentTransactions"
+                                    :key="transaction.id"
+                                >
+                                    <TableCell class="font-medium">
+                                        <Link :href="transactionsShow(transaction.id).url" class="hover:underline">
+                                            {{ transaction.transaction_number }}
+                                        </Link>
+                                    </TableCell>
+                                    <TableCell>
+                                        {{ formatDate(transaction.transaction_date) }}
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge
+                                            :class="transaction.type === 'in' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"
+                                            variant="outline"
+                                        >
+                                            {{ transaction.type === 'in' ? 'Cash In' : 'Cash Out' }}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell
+                                        :class="transaction.type === 'in' ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'"
+                                    >
+                                        {{ formatCurrency(transaction.amount) }}
+                                    </TableCell>
+                                    <TableCell class="max-w-xs truncate">
+                                        {{ transaction.description }}
+                                    </TableCell>
+                                    <TableCell>
+                                        {{ transaction.user.name }}
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge :variant="getStatusVariant(transaction.status)">
+                                            {{ transaction.status }}
+                                        </Badge>
+                                    </TableCell>
+                                </TableRow>
+                            </TableBody>
+                        </Table>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <!-- Default placeholder if no stats -->
+            <div v-if="!stats || (!page.props.auth?.can?.viewUsers && !page.props.auth?.can?.viewTransactions)" class="grid auto-rows-min gap-4 md:grid-cols-3">
+                <div
+                    class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
+                >
+                    <PlaceholderPattern />
+                </div>
+                <div
+                    class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
+                >
+                    <PlaceholderPattern />
+                </div>
+                <div
+                    class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
+                >
+                    <PlaceholderPattern />
+                </div>
             </div>
         </div>
     </AppLayout>

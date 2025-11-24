@@ -12,9 +12,10 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import { index as transactionsIndex } from '@/actions/App/Http/Controllers/TransactionController';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, Users } from 'lucide-vue-next';
+import { BookOpen, Folder, LayoutGrid, Users, Receipt } from 'lucide-vue-next';
 import { computed } from 'vue';
 import AppLogo from './AppLogo.vue';
 
@@ -28,6 +29,15 @@ const mainNavItems = computed<NavItem[]>(() => {
             icon: LayoutGrid,
         },
     ];
+
+    // Add Transactions menu item if user has permission
+    if (page.props.auth?.can?.viewTransactions) {
+        items.push({
+            title: 'Transactions',
+            href: transactionsIndex(),
+            icon: Receipt,
+        });
+    }
 
     // Add Users menu item if user has permission
     if (page.props.auth?.can?.viewUsers) {

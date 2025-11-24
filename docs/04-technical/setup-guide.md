@@ -2,11 +2,18 @@
 
 ## Prerequisites
 
-- PHP 8.2 or higher
-- Composer 2.x
-- Node.js 18+ and Yarn
-- MySQL 8.0 or SQLite (for development)
-- Git
+Before you begin, ensure you have the following installed on your system:
+
+- **PHP** 8.4 or higher
+- **Composer** 2.x
+- **MySQL** 8.0 or **MariaDB** 10.x
+- **Node.js** 18+ 
+- **Yarn** (package manager)
+- **Git**
+
+Optional but recommended:
+- **Docker** (for Laravel Sail)
+- **Redis** (for caching and queues)
 
 ## Installation Steps
 
@@ -23,9 +30,12 @@ cd petty-cash-app
 composer install
 ```
 
-### 3. Install Node Dependencies
+If you encounter memory issues, try:
+```bash
+COMPOSER_MEMORY_LIMIT=-1 composer install
+```
 
-**Note: This project uses Yarn, not npm**
+### 3. Install JavaScript Dependencies
 
 ```bash
 yarn install
@@ -34,11 +44,14 @@ yarn install
 ### 4. Environment Configuration
 
 ```bash
+# Copy environment file
 cp .env.example .env
+
+# Generate application key
 php artisan key:generate
 ```
 
-Edit `.env` file:
+Edit the `.env` file with your local configuration:
 
 ```env
 APP_NAME="Petty Cash Book"
@@ -46,251 +59,391 @@ APP_ENV=local
 APP_DEBUG=true
 APP_URL=http://localhost:8000
 
-DB_CONNECTION=sqlite
-# For MySQL, use:
-# DB_CONNECTION=mysql
-# DB_HOST=127.0.0.1
-# DB_PORT=3306
-# DB_DATABASE=petty_cash
-# DB_USERNAME=root
-# DB_PASSWORD=
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=petty_cash
+DB_USERNAME=root
+DB_PASSWORD=
 
-MAIL_MAILER=log
+# Session & Cache
+SESSION_DRIVER=database
+CACHE_STORE=database
+
+# Queue (optional for development)
+QUEUE_CONNECTION=sync
+
+# Mail (for testing, use Mailpit or Mailtrap)
+MAIL_MAILER=smtp
+MAIL_HOST=localhost
+MAIL_PORT=1025
+MAIL_USERNAME=null
+MAIL_PASSWORD=null
+MAIL_ENCRYPTION=null
 MAIL_FROM_ADDRESS="noreply@pettycash.local"
 MAIL_FROM_NAME="${APP_NAME}"
 ```
 
 ### 5. Database Setup
 
-#### Using SQLite (Development)
+#### Option A: Manual Database Creation
+
 ```bash
-touch database/database.sqlite
-php artisan migrate
-php artisan db:seed
+# Create database using MySQL CLI
+mysql -u root -p
 ```
 
-#### Using MySQL (Production-like)
-```bash
-# Create database
-mysql -u root -p
-CREATE DATABASE petty_cash;
-exit;
+```sql
+CREATE DATABASE petty_cash CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+EXIT;
+```
 
+#### Option B: Using Laravel Sail (Docker)
+
+```bash
+# Start Sail containers
+./vendor/bin/sail up -d
+
+# The database will be created automatically
+```
+
+### 6. Run Migrations and Seeders
+
+```bash
 # Run migrations
 php artisan migrate
+
+# Seed the database with roles, permissions, and test users
 php artisan db:seed
 ```
 
-### 6. Generate Wayfinder Routes
+### 7. Storage Link
+
+Create symbolic link for file storage:
 
 ```bash
-php artisan wayfinder:generate
+php artisan storage:link
 ```
 
-### 7. Build Assets
+### 8. Build Frontend Assets
 
+For development with hot reload:
 ```bash
-# Development
 yarn dev
+```
 
-# Production
+For production build:
+```bash
 yarn build
 ```
 
-### 8. Start Development Server
+### 9. Start Development Server
 
 ```bash
-# Option 1: Simple Laravel server
+# Laravel development server
 php artisan serve
-
-# Option 2: Full development stack (recommended)
-composer run dev
 ```
 
-Visit: http://localhost:8000
+The application will be available at: **http://localhost:8000**
 
 ## Default Login Credentials
 
-After seeding, you can create an admin user:
+After seeding, you can log in with these accounts:
 
-```bash
-php artisan tinker
-```
+### Admin Account
+- **Email**: `admin@pettycash.local`
+- **Password**: `password`
+- **Role**: Admin (Full Access)
 
-```php
-$user = User::factory()->create([
-    'name' => 'Admin User',
-    'email' => 'admin@pettycash.local',
-    'password' => bcrypt('password'),
-    'email_verified_at' => now(),
-]);
-$user->assignRole('Admin');
-```
+### Accountant Account
+- **Email**: `accountant@pettycash.local`
+- **Password**: `password`
+- **Role**: Accountant
 
-**Login Credentials:**
-- Email: admin@pettycash.local
-- Password: password
+### Cashier Account
+- **Email**: `cashier@pettycash.local`
+- **Password**: `password`
+- **Role**: Cashier
 
-## Testing
+### Requester Account
+- **Email**: `requester@pettycash.local`
+- **Password**: `password`
+- **Role**: Requester
+
+> **⚠️ Security Warning**: Change these passwords immediately in production!
+
+## Running Tests
 
 ```bash
 # Run all tests
 php artisan test
 
+# Run with coverage
+php artisan test --coverage
+
 # Run specific test suite
 php artisan test --testsuite=Feature
 
-# Run with coverage (requires Xdebug)
-php artisan test --coverage
-
 # Run specific test file
-php artisan test tests/Feature/Feature/Users/UserManagementTest.php
+php artisan test tests/Feature/TransactionTest.php
+
+# Run specific test method
+php artisan test --filter=test_user_can_create_transaction
 ```
 
-## Code Quality
+**Current Test Coverage**: 69 tests, 161 assertions passing ✅
 
-### Laravel Pint (Code Formatter)
+## Code Quality Tools
+
+### Laravel Pint (PHP Code Formatter)
 
 ```bash
-# Format all files
+# Fix all code style issues
 vendor/bin/pint
 
-# Format specific directory
+# Check specific directory
 vendor/bin/pint app/Http/Controllers
 
-# Check without fixing
+# Dry run (check without fixing)
 vendor/bin/pint --test
 ```
 
-### PHPStan (Static Analysis)
+### ESLint & Prettier (JavaScript/Vue)
 
 ```bash
-# If installed
-vendor/bin/phpstan analyse
+# Run ESLint
+yarn lint
+
+# Fix auto-fixable issues
+yarn lint:fix
+
+# Format with Prettier
+yarn format
 ```
 
-## Common Development Commands
+## Development with Laravel Sail (Docker)
+
+If you prefer Docker-based development:
 
 ```bash
-# Clear all caches
-php artisan optimize:clear
+# Start all containers
+./vendor/bin/sail up -d
 
-# Generate IDE helper files (if installed)
-php artisan ide-helper:generate
-php artisan ide-helper:models
-php artisan ide-helper:meta
+# Stop containers
+./vendor/bin/sail down
 
-# Create new migration
-php artisan make:migration create_table_name
+# Run artisan commands
+./vendor/bin/sail artisan migrate
 
-# Create new model with migration and factory
-php artisan make:model ModelName -mf
+# Run composer
+./vendor/bin/sail composer install
 
-# Create new controller
-php artisan make:controller ControllerName
+# Run yarn
+./vendor/bin/sail yarn dev
 
-# Create new request
-php artisan make:request RequestName
+# Run tests
+./vendor/bin/sail test
 
-# Create new test
-php artisan make:test TestName --phpunit
-
-# List all routes
-php artisan route:list
-
-# List all artisan commands
-php artisan list
+# Access MySQL CLI
+./vendor/bin/sail mysql
 ```
 
 ## Troubleshooting
 
 ### Issue: Permission Denied on Storage
 
+**Solution:**
 ```bash
 chmod -R 775 storage bootstrap/cache
+chown -R www-data:www-data storage bootstrap/cache
+```
+
+Or on development:
+```bash
+sudo chmod -R 777 storage bootstrap/cache
 ```
 
 ### Issue: Database Connection Failed
 
-- Verify database service is running
-- Check database credentials in `.env`
-- Ensure database exists
-- For SQLite, ensure file exists: `touch database/database.sqlite`
+**Check these:**
+1. MySQL/MariaDB is running: `sudo systemctl status mysql`
+2. Database exists: `SHOW DATABASES;`
+3. Credentials in `.env` are correct
+4. Port is correct (default: 3306)
 
-### Issue: Assets Not Loading
-
+**Restart MySQL:**
 ```bash
-yarn build
+sudo systemctl restart mysql
+```
+
+### Issue: Assets Not Loading / Vite Error
+
+**Solution:**
+```bash
+# Clear all caches
 php artisan optimize:clear
+
+# Rebuild assets
+yarn build
+
+# If still issues, delete node_modules
+rm -rf node_modules yarn.lock
+yarn install
 ```
 
-### Issue: Vite Manifest Not Found (in tests)
+### Issue: "Class not found" Errors
 
-Tests use `withoutVite()` helper to skip asset compilation. This is normal for feature tests.
+**Solution:**
+```bash
+# Regenerate autoload files
+composer dump-autoload
 
-### Issue: 2FA Enabled (Development)
-
-2FA is temporarily disabled in development. Check `config/fortify.php`:
-
-```php
-'features' => [
-    Features::registration(),
-    Features::resetPasswords(),
-    Features::emailVerification(),
-    // 2FA commented out for development
-],
+# Clear config cache
+php artisan config:clear
+php artisan cache:clear
 ```
 
-### Issue: Yarn Command Not Found
+### Issue: Migration Already Exists Error
 
-Install Yarn globally:
+**Solution:**
+```bash
+# Rollback migrations
+php artisan migrate:rollback
+
+# Or reset database (⚠️ destroys all data)
+php artisan migrate:fresh --seed
+```
+
+### Issue: Port 8000 Already in Use
+
+**Solution:**
+```bash
+# Use different port
+php artisan serve --port=8001
+
+# Or kill the process using port 8000
+lsof -ti:8000 | xargs kill -9
+```
+
+## IDE Setup
+
+### VS Code (Recommended)
+
+Install these extensions:
+- **PHP Intelephense** (bmewburn.vscode-intelephense-client)
+- **Laravel Blade Snippets** (onecentlin.laravel-blade)
+- **Vue - Official** (Vue.volar)
+- **ESLint** (dbaeumer.vscode-eslint)
+- **Prettier** (esbenp.prettier-vscode)
+- **Tailwind CSS IntelliSense** (bradlc.vscode-tailwindcss)
+
+Workspace settings (`.vscode/settings.json`):
+```json
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[php]": {
+    "editor.defaultFormatter": "bmewburn.vscode-intelephense-client"
+  },
+  "intelephense.files.associations": ["*.php", "*.blade.php"],
+  "emmet.includeLanguages": {
+    "blade": "html"
+  }
+}
+```
+
+### PHPStorm
+
+1. Go to **Settings → PHP → Composer**
+2. Set path to composer.json
+3. Enable **Synchronize IDE settings with composer.json**
+4. Go to **Settings → Languages & Frameworks → PHP**
+5. Set PHP language level to 8.4
+6. Configure Laravel plugin
+
+## Additional Configuration
+
+### Queue Worker (Optional for Development)
+
+If you plan to use queued jobs:
 
 ```bash
-npm install -g yarn
+# In .env, set
+QUEUE_CONNECTION=database
+
+# Run migrations for jobs table
+php artisan queue:table
+php artisan migrate
+
+# Start queue worker
+php artisan queue:work
+
+# Or use Horizon (if installed)
+php artisan horizon
 ```
 
-## IDE Setup (VS Code)
+### Mail Testing with Mailpit
 
-Recommended extensions:
-- **PHP Intelephense**: PHP language support
-- **Laravel Blade Snippets**: Blade template support
-- **Volar**: Vue.js 3 support
-- **ESLint**: JavaScript linting
-- **Prettier**: Code formatting
-- **GitLens**: Git integration
+Mailpit is included in Laravel Sail:
 
-## Browser DevTools
+```bash
+# With Sail running
+./vendor/bin/sail up -d
 
-For Vue.js development:
-- Install **Vue.js DevTools** extension for Chrome/Firefox
+# Access Mailpit UI at:
+# http://localhost:8025
+```
 
-## Environment Variables Reference
+For manual Mailpit installation:
+```bash
+# Install Mailpit
+brew install mailpit  # macOS
+# or download from: https://github.com/axllent/mailpit
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| APP_NAME | Application name | "Petty Cash Book" |
-| APP_ENV | Environment (local/production) | local |
-| APP_DEBUG | Debug mode | true |
-| APP_URL | Application URL | http://localhost:8000 |
-| DB_CONNECTION | Database driver | sqlite |
-| MAIL_MAILER | Mail driver | log |
+# Run Mailpit
+mailpit
+
+# Configure .env
+MAIL_HOST=localhost
+MAIL_PORT=1025
+```
+
+### Redis (Optional)
+
+For better performance with caching and sessions:
+
+```bash
+# Install Redis
+sudo apt install redis-server  # Ubuntu/Debian
+brew install redis             # macOS
+
+# Start Redis
+sudo systemctl start redis
+
+# Update .env
+CACHE_STORE=redis
+SESSION_DRIVER=redis
+QUEUE_CONNECTION=redis
+```
 
 ## Next Steps
 
-1. Review [Coding Standards](coding-standards.md)
-2. Check [Git Workflow](git-workflow.md)
-3. Read [Testing Strategy](testing-strategy.md)
-4. Explore [User Manual](../06-user-guides/user-manual.md)
+After successful installation:
+
+1. ✅ Read the [Coding Standards](coding-standards.md)
+2. ✅ Review [Git Workflow](git-workflow.md)
+3. ✅ Check [Testing Strategy](testing-strategy.md)
+4. ✅ Explore the [API Documentation](../05-api-documentation/api-overview.md)
+5. ✅ Join the development team standup
 
 ## Getting Help
 
-- Check [FAQ](../06-user-guides/faq.md)
+- Check the [FAQ](../06-user-guides/faq.md)
 - Review [Troubleshooting Guide](../06-user-guides/troubleshooting.md)
-- Contact development team
-- Review Laravel documentation: https://laravel.com/docs
+- Contact the development team
+- Submit issues on GitHub/GitLab
 
 ---
 
-**Document Version**: 1.0  
-**Last Updated**: November 24, 2024
-
+**Last Updated**: November 24, 2024  
+**Tested On**: Ubuntu 24.04, macOS 14, Windows 11 (WSL2)
