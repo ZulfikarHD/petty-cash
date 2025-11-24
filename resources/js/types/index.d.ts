@@ -34,6 +34,46 @@ export interface User {
     email_verified_at: string | null;
     created_at: string;
     updated_at: string;
+    roles?: Role[];
+    permissions?: Permission[];
+}
+
+export interface Role {
+    id: number;
+    name: string;
+    guard_name: string;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface Permission {
+    id: number;
+    name: string;
+    guard_name: string;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface PaginatedData<T> {
+    data: T[];
+    links: PaginationLink[];
+    meta: PaginationMeta;
+}
+
+export interface PaginationLink {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
+
+export interface PaginationMeta {
+    current_page: number;
+    from: number;
+    last_page: number;
+    path: string;
+    per_page: number;
+    to: number;
+    total: number;
 }
 
 export type BreadcrumbItemType = BreadcrumbItem;

@@ -11,7 +11,29 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('dashboard', function () {
-    return Inertia::render('Dashboard');
+    $stats = [];
+
+    if (auth()->user()->can('view-users')) {
+        $stats['totalUsers'] = \App\Models\User::count();
+        $stats['verifiedUsers'] = \App\Models\User::whereNotNull('email_verified_at')->count();
+        $stats['recentUsers'] = \App\Models\User::where('created_at', '>=', now()->subDays(30))->count();
+    }
+
+    return Inertia::render('Dashboard', [
+        'stats' => $stats,
+    ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
+
+// User Management Routes
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::resource('users', \App\Http\Controllers\UserController::class);
+});
+
+// Profile Routes
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/profile', [\App\Http\Controllers\ProfileController::class, 'show'])->name('profile.show');
+    Route::put('/profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/password', [\App\Http\Controllers\ProfileController::class, 'updatePassword'])->name('profile.password.update');
+});
 
 require __DIR__.'/settings.php';
