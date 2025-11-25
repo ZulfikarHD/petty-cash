@@ -478,19 +478,243 @@ Use soft deletes for transactions (and most other entities).
 
 ---
 
+## ADR-013: Use Service Layer for Budget Calculations
+
+**Status**: Accepted  
+**Date**: 2024-11-25  
+**Sprint**: Sprint 3
+
+### Context
+
+Need to implement budget tracking with complex calculations:
+- Calculate spent amount per category
+- Determine if budget is exceeded
+- Check alert thresholds
+- Generate spending summaries
+
+Options:
+1. Put logic in Controller
+2. Put logic in Model
+3. Create dedicated Service class
+
+### Decision
+
+Create `BudgetService` class to handle all budget-related calculations and business logic.
+
+### Rationale
+
+- **Separation of Concerns**: Controllers stay thin
+- **Testability**: Easy to unit test calculation logic
+- **Reusability**: Service can be used by multiple controllers
+- **Single Responsibility**: Budget model focuses on data, service on logic
+- **Maintainability**: All budget logic in one place
+
+### Consequences
+
+**Positive:**
+- Clean architecture
+- Easy to test calculations independently
+- Business logic can be reused across application
+- Controllers remain focused on request/response
+
+**Negative:**
+- Additional layer of abstraction
+- Must inject service where needed
+- Slightly more complex for simple operations
+
+---
+
+## ADR-014: Use Nullable Category on Transactions
+
+**Status**: Accepted  
+**Date**: 2024-11-25  
+**Sprint**: Sprint 3
+
+### Context
+
+Need to decide if transactions MUST have a category or if category is optional.
+
+Options:
+1. Make category required (NOT NULL)
+2. Make category optional (nullable)
+
+### Decision
+
+Make `category_id` nullable with `ON DELETE SET NULL` constraint.
+
+### Rationale
+
+- **Backward Compatibility**: Existing transactions don't have categories
+- **Flexibility**: Not all transactions fit into predefined categories
+- **Data Integrity**: Deleting a category doesn't break historical data
+- **User Experience**: Users can categorize gradually
+- **Migration**: Easier to migrate existing data
+
+### Consequences
+
+**Positive:**
+- Historical transactions remain valid
+- Users can add categories incrementally
+- Category deletion doesn't cascade delete transactions
+- More flexible workflow
+
+**Negative:**
+- Must handle null category in reports
+- Budget calculations only work for categorized transactions
+- Some transactions may never be categorized
+
+---
+
+## ADR-015: Use Color Hex Codes for Category Visualization
+
+**Status**: Accepted  
+**Date**: 2024-11-25  
+**Sprint**: Sprint 3
+
+### Context
+
+Need visual differentiation for categories in UI. Options:
+1. Use icon library (FontAwesome, Lucide)
+2. Use predefined color palette
+3. Allow custom hex colors
+4. Use both icons and colors
+
+### Decision
+
+Use custom hex color codes (#RRGGBB format) stored in database.
+
+### Rationale
+
+- **Simplicity**: No additional icon library needed
+- **Flexibility**: Users can choose any color they want
+- **Visual**: Colors provide quick visual distinction
+- **Accessibility**: Can be combined with text labels
+- **Storage**: Only 7 characters per category
+
+### Consequences
+
+**Positive:**
+- Easy to implement
+- Fast rendering (just CSS)
+- Flexible color selection
+- Works well with badges and progress bars
+
+**Negative:**
+- No semantic meaning like icons provide
+- Color-blind users may have difficulty
+- Users might choose conflicting colors
+- No standardization across deployments
+
+**Mitigation:**
+- Default to good color palette
+- Always show category name alongside color
+- Consider adding icon support in future
+
+---
+
+## ADR-016: Use Unique Constraint on Budget Periods
+
+**Status**: Accepted  
+**Date**: 2024-11-25  
+**Sprint**: Sprint 3
+
+### Context
+
+Need to prevent overlapping budgets for the same category. Options:
+1. Single unique constraint on category_id (one budget ever)
+2. Unique constraint on (category_id, start_date, end_date)
+3. No constraint, validate in code
+4. Allow overlaps
+
+### Decision
+
+Use unique constraint on `(category_id, start_date, end_date)` at database level.
+
+### Rationale
+
+- **Data Integrity**: Database enforces uniqueness
+- **Multiple Periods**: Can have multiple budgets per category
+- **No Overlaps**: Prevents confusion about which budget applies
+- **Performance**: Index improves query performance
+- **Reliability**: Can't be bypassed by buggy code
+
+### Consequences
+
+**Positive:**
+- Database guarantees no duplicate periods
+- Can have historical budgets
+- Fast lookups for active budget
+- Clear error when attempting duplicates
+
+**Negative:**
+- Must handle unique constraint violations in UI
+- Can't have overlapping periods (feature or limitation?)
+- More complex budget period management
+
+**Note**: Current implementation allows different start/end dates, so multiple budgets can exist for same category as long as dates differ. Future enhancement: validate actual date range overlaps.
+
+---
+
+## ADR-017: Use In-App Alerts Over Email for Budget Notifications
+
+**Status**: Accepted  
+**Date**: 2024-11-25  
+**Sprint**: Sprint 3
+
+### Context
+
+Budget alerts need to notify users when approaching/exceeding limits. Options:
+1. Email notifications only
+2. In-app notifications only
+3. Both email and in-app
+4. SMS notifications
+
+### Decision
+
+Implement in-app alert widget on dashboard only (for now).
+
+### Rationale
+
+- **Simplicity**: No email infrastructure needed yet
+- **Real-Time**: Visible immediately when viewing dashboard
+- **No Spam**: Users not bombarded with emails
+- **Performance**: No queue jobs needed
+- **MVP Approach**: Start simple, add complexity later
+
+### Consequences
+
+**Positive:**
+- Fast implementation
+- No email server dependencies
+- Users see alerts when they login
+- Visual indicators with color coding
+
+**Negative:**
+- Users not notified if they don't check dashboard
+- No historical alert log
+- No email trail for compliance
+- Limited notification reach
+
+**Future Enhancement:**
+- Add email notifications in Sprint 11 (Notifications)
+- Add notification center for alert history
+- Add configurable notification preferences
+
+---
+
 ## Future Decisions (Proposed)
 
-### ADR-013: Queue System for Email Notifications
+### ADR-018: Queue System for Email Notifications
 **Status**: Proposed  
 **Target Sprint**: Sprint 11  
 Need to decide on queue driver (database, Redis, SQS)
 
-### ADR-014: Caching Strategy
+### ADR-019: Caching Strategy
 **Status**: Proposed  
 **Target Sprint**: Sprint 12  
-Need to decide on cache driver and what to cache
+Need to decide on cache driver and what to cache (categories, budgets, permissions)
 
-### ADR-015: Export Library for Reports
+### ADR-020: Export Library for Reports
 **Status**: Proposed  
 **Target Sprint**: Sprint 6  
 Need to choose library for PDF/Excel exports
@@ -503,6 +727,6 @@ None yet.
 
 ---
 
-**Last Updated**: November 24, 2024  
-**Total ADRs**: 12 accepted, 3 proposed, 0 deprecated
+**Last Updated**: November 25, 2024  
+**Total ADRs**: 17 accepted, 3 proposed, 0 deprecated
 

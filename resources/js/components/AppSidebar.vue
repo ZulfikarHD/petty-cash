@@ -13,9 +13,11 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import { index as transactionsIndex } from '@/actions/App/Http/Controllers/TransactionController';
+import { index as categoriesIndex } from '@/actions/App/Http/Controllers/CategoryController';
+import { index as budgetsIndex } from '@/actions/App/Http/Controllers/BudgetController';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, Users, Receipt } from 'lucide-vue-next';
+import { BookOpen, Folder, LayoutGrid, Users, Receipt, Tags, Wallet } from 'lucide-vue-next';
 import { computed } from 'vue';
 import AppLogo from './AppLogo.vue';
 
@@ -36,6 +38,24 @@ const mainNavItems = computed<NavItem[]>(() => {
             title: 'Transactions',
             href: transactionsIndex(),
             icon: Receipt,
+        });
+    }
+
+    // Add Categories menu item if user has permission
+    if (page.props.auth?.can?.viewCategories) {
+        items.push({
+            title: 'Categories',
+            href: categoriesIndex(),
+            icon: Tags,
+        });
+    }
+
+    // Add Budgets menu item if user has permission
+    if (page.props.auth?.can?.viewBudgets) {
+        items.push({
+            title: 'Budgets',
+            href: budgetsIndex(),
+            icon: Wallet,
         });
     }
 

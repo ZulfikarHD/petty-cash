@@ -10,6 +10,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import {
     Card,
     CardContent,
     CardDescription,
@@ -20,11 +27,25 @@ import InputError from '@/components/InputError.vue';
 import { ref } from 'vue';
 import { Upload, X } from 'lucide-vue-next';
 
+interface Category {
+    id: number;
+    name: string;
+    slug: string;
+    color: string;
+}
+
+interface Props {
+    categories: Category[];
+}
+
+const props = defineProps<Props>();
+
 const form = ref({
     type: 'out',
     amount: '',
     description: '',
     transaction_date: new Date().toISOString().split('T')[0],
+    category_id: null as string | null,
     notes: '',
     receipts: [] as File[],
 });
@@ -79,6 +100,9 @@ function submit() {
     formData.append('amount', form.value.amount);
     formData.append('description', form.value.description);
     formData.append('transaction_date', form.value.transaction_date);
+    if (form.value.category_id) {
+        formData.append('category_id', form.value.category_id);
+    }
     formData.append('notes', form.value.notes);
 
     form.value.receipts.forEach((file, index) => {
@@ -156,6 +180,32 @@ function submit() {
                                 required
                             />
                             <InputError :message="errors.transaction_date" />
+                        </div>
+
+                        <!-- Category -->
+                        <div class="space-y-2">
+                            <Label for="category_id">Category (Optional)</Label>
+                            <Select v-model="form.category_id">
+                                <SelectTrigger id="category_id">
+                                    <SelectValue placeholder="Select a category" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem
+                                        v-for="category in categories"
+                                        :key="category.id"
+                                        :value="String(category.id)"
+                                    >
+                                        <div class="flex items-center gap-2">
+                                            <div
+                                                class="size-3 rounded"
+                                                :style="{ backgroundColor: category.color }"
+                                            ></div>
+                                            {{ category.name }}
+                                        </div>
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <InputError :message="errors.category_id" />
                         </div>
 
                         <!-- Description -->

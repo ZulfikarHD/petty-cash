@@ -75,6 +75,14 @@ class Transaction extends Model implements HasMedia
     }
 
     /**
+     * Get the category that owns the transaction.
+     */
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    /**
      * Scope a query to only include pending transactions.
      */
     public function scopePending($query)

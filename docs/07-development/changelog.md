@@ -8,12 +8,124 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- Categories and budget management
 - Cash balance tracking and reconciliation
 - Approval workflow system
 - Advanced reporting and analytics
 - Vendor management
 - Audit trail and activity logging
+- Multi-currency support
+- Mobile optimizations
+
+---
+
+## [0.3.0] - 2024-11-25
+
+### Added - Sprint 3: Categories & Budget Management
+
+#### Backend
+- **Categories Module**
+  - `categories` table with soft deletes
+  - `Category` model with Sluggable trait
+  - Auto-generated slugs from category names
+  - Category CRUD with authorization
+  - Color picker support (hex colors)
+  - Active/inactive status management
+  - CategoryController with full CRUD
+  - StoreCategoryRequest and UpdateCategoryRequest validation
+
+- **Budgets Module**
+  - `budgets` table with unique period constraints
+  - `Budget` model with relationships
+  - Budget CRUD with date overlap validation
+  - BudgetService for business logic calculations
+  - Alert threshold system (percentage-based)
+  - Budget vs actual spending calculations
+  - Budget period management (start/end dates)
+  - BudgetController with full CRUD + overview
+  - StoreBudgetRequest and UpdateBudgetRequest validation
+
+- **Transaction Integration**
+  - Added foreign key constraint to transactions.category_id
+  - Updated Transaction model with category relationship
+  - Category filtering in transaction list
+  - Optional category assignment to transactions
+
+- **Permissions**
+  - `manage-categories` - Admin only
+  - `view-categories` - All roles
+  - `manage-budgets` - Admin only
+  - `view-budgets` - All roles
+  - Updated RolesAndPermissionsSeeder
+
+#### Frontend
+- **Category Pages**
+  - Categories list with search and status filter
+  - Category create form with color picker
+  - Category edit form
+  - Category detail view with transaction history
+  - Category badge component with color display
+
+- **Budget Pages**
+  - Budget list with progress bars
+  - Budget create form with category selector
+  - Budget edit form with validation
+  - Budget detail view with spending breakdown
+  - Budget overview page (comparison view)
+  - Progress visualization with color indicators:
+    - Green: < 80% (below alert threshold)
+    - Yellow: 80-99% (approaching limit)
+    - Red: ≥ 100% (exceeded)
+
+- **Dashboard Integration**
+  - Budget alerts widget
+  - Shows budgets approaching/exceeding limits
+  - Alert severity levels (warning/danger)
+  - Links to budget details
+
+- **Transaction Forms**
+  - Added category select dropdown to Create/Edit
+  - Optional category assignment
+  - Category display in transaction list
+  - Category filter in transaction search
+
+- **Navigation**
+  - Added "Categories" to sidebar (Tag icon)
+  - Added "Budgets" to sidebar (Wallet icon)
+  - Permission-based menu visibility
+  - Wayfinder integration for routes
+
+#### Testing
+- 38 new tests added (total: 107 tests)
+- CategoryCRUDTest - 8 tests
+- CategoryAuthorizationTest - 6 tests
+- BudgetCRUDTest - 10 tests
+- BudgetCalculationTest - 8 tests
+- TransactionCategoryTest - 6 tests
+- All tests passing with 254 assertions
+
+### Fixed
+- SelectItem empty value error in transaction forms
+  - Changed from empty string to `null` for "no category"
+  - Updated form submission logic to handle nullable category
+- CategoryFactory missing default definition
+- Budget date format assertion in tests
+- Form validation for budget date overlaps
+- Foreign key constraint on transactions.category_id
+
+### Changed
+- Transaction forms now support optional category selection
+- Dashboard displays budget alert information
+- HandleInertiaRequests shares category/budget permissions
+- AppSidebar dynamically builds menu based on permissions
+- Transaction model includes category relationship
+
+### Technical
+- Implemented BudgetService for calculation separation
+- Added unique constraint on (category_id, start_date, end_date)
+- Implemented date overlap validation in StoreBudgetRequest
+- Added spent_amount accessor to Budget model
+- Optimized queries with eager loading
+- Added database indexes for performance
 
 ---
 
@@ -172,6 +284,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 | Version | Date | Sprint | Status | Tests |
 |---------|------|--------|--------|-------|
+| 0.3.0 | 2024-11-25 | Sprint 3 | ✅ Completed | 107 passing |
 | 0.2.0 | 2024-11-24 | Sprint 2 | ✅ Completed | 69 passing |
 | 0.1.0 | 2024-11-10 | Sprint 1 | ✅ Completed | 27 passing |
 | 0.0.1 | 2024-10-27 | Sprint 0 | ✅ Completed | - |
@@ -179,6 +292,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 ## Migration Guide
+
+### Upgrading from 0.2.0 to 0.3.0
+
+1. **Run new migrations:**
+   ```bash
+   php artisan migrate
+   ```
+
+2. **Update permissions:**
+   ```bash
+   php artisan db:seed --class=RolesAndPermissionsSeeder
+   ```
+
+3. **Generate Wayfinder routes:**
+   ```bash
+   php artisan wayfinder:generate
+   ```
+
+4. **Rebuild frontend assets:**
+   ```bash
+   yarn install
+   yarn build
+   ```
+
+5. **Clear caches:**
+   ```bash
+   php artisan optimize:clear
+   ```
 
 ### Upgrading from 0.1.0 to 0.2.0
 
@@ -219,6 +360,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Breaking Changes
 
+### 0.3.0
+- None (additive changes only)
+- Transaction category is optional (nullable)
+
 ### 0.2.0
 - None (additive changes only)
 
@@ -228,6 +373,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 ## Security Updates
+
+### 0.3.0
+- Category and budget authorization checks
+- Permission-based menu rendering
+- Budget calculation validation
+- Date overlap validation for budgets
 
 ### 0.2.0
 - Transaction authorization checks enforced
@@ -245,23 +396,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Known Issues
 
-### Current Version (0.2.0)
-- Category and vendor dropdowns show null (waiting for Sprint 3 & 8)
+### Current Version (0.3.0)
+- Vendor dropdown not implemented yet (Sprint 8)
 - No batch operations for transactions yet
 - No Excel export functionality yet
-- Dashboard only shows basic statistics
+- Budget email alerts not implemented (in-app only)
+- No budget templates or rollover feature
 
 ---
 
-## Upcoming in Next Release (0.3.0)
+## Upcoming in Next Release (0.4.0)
 
-- **Categories Management**: Create and manage expense categories
-- **Budget Allocation**: Set budget limits per category
-- **Budget Tracking**: Real-time budget vs actual spending
-- **Budget Alerts**: Notifications when approaching limits
-- **Category Reports**: Category-wise expense breakdown
+- **Cash Balance Tracking**: Real-time balance calculations
+- **Opening Balance**: Set starting balance for periods
+- **Cash Reconciliation**: Reconcile physical cash with system
+- **Balance History**: Track balance over time
+- **Low Balance Alerts**: Notifications when cash is low
 
-**Target Release Date**: December 8, 2024
+**Target Release Date**: December 22, 2024
 
 ---
 
@@ -274,7 +426,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-**Documentation Updated**: November 24, 2024  
+**Documentation Updated**: November 25, 2024  
 **Project Status**: Active Development  
-**Current Version**: 0.2.0
+**Current Version**: 0.3.0
 

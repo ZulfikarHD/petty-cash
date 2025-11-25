@@ -79,7 +79,11 @@ class TransactionController extends Controller
     {
         $this->authorize('create-transactions');
 
-        return Inertia::render('Transactions/Create');
+        $categories = \App\Models\Category::active()->orderBy('name')->get(['id', 'name', 'slug', 'color']);
+
+        return Inertia::render('Transactions/Create', [
+            'categories' => $categories,
+        ]);
     }
 
     /**
@@ -92,6 +96,7 @@ class TransactionController extends Controller
             'amount' => $request->amount,
             'description' => $request->description,
             'transaction_date' => $request->transaction_date,
+            'category_id' => $request->category_id,
             'notes' => $request->notes,
             'user_id' => $request->user()->id,
             'status' => 'pending',
@@ -149,6 +154,7 @@ class TransactionController extends Controller
         }
 
         $transaction->load('media');
+        $categories = \App\Models\Category::active()->orderBy('name')->get(['id', 'name', 'slug', 'color']);
 
         return Inertia::render('Transactions/Edit', [
             'transaction' => $transaction,
@@ -160,6 +166,7 @@ class TransactionController extends Controller
                     'size' => $media->size,
                 ];
             }),
+            'categories' => $categories,
         ]);
     }
 
@@ -173,6 +180,7 @@ class TransactionController extends Controller
             'amount' => $request->amount,
             'description' => $request->description,
             'transaction_date' => $request->transaction_date,
+            'category_id' => $request->category_id,
             'notes' => $request->notes,
         ]);
 

@@ -28,14 +28,14 @@ Welcome to the Petty Cash Book application documentation. This system helps orga
 ## 🏗️ Project Overview
 
 - **Project Name**: Petty Cash Book Application
-- **Version**: 1.0.0 (In Development)
-- **Status**: Sprint 2 Completed ✅
+- **Version**: 0.3.0 (In Development)
+- **Status**: Sprint 3 Completed ✅
 - **Tech Stack**: Laravel 12, Vue 3, Inertia.js, Tailwind CSS
-- **Last Updated**: November 24, 2024
+- **Last Updated**: November 25, 2024
 
 ## 🎯 Key Features
 
-### ✅ Completed (Sprint 1 & 2)
+### ✅ Completed (Sprints 1, 2 & 3)
 - User authentication with email verification
 - Role-based access control (Admin, Accountant, Cashier, Requester)
 - User management interface
@@ -43,11 +43,14 @@ Welcome to the Petty Cash Book application documentation. This system helps orga
 - Receipt image uploads
 - Transaction filtering and search
 - Auto-generated transaction numbers
-- Real-time balance calculations
-- Comprehensive testing (69 tests passing)
+- **Categories management** (create, edit, delete with color coding)
+- **Budget allocation** (set limits per category with date ranges)
+- **Budget tracking** (real-time budget vs actual spending)
+- **Budget alerts** (visual indicators and dashboard notifications)
+- Category assignment to transactions
+- Comprehensive testing (107 tests passing)
 
 ### 🚧 In Progress
-- Categories & Budget Management (Sprint 3)
 - Cash Balance & Reconciliation (Sprint 4)
 - Approval Workflow System (Sprint 5)
 
@@ -123,7 +126,7 @@ php artisan test --coverage
 php artisan test --filter=Transaction
 ```
 
-Current test coverage: **69 tests, 161 assertions passing**
+Current test coverage: **107 tests, 254 assertions passing**
 
 ## 📦 Tech Stack
 
@@ -171,10 +174,11 @@ Current test coverage: **69 tests, 161 assertions passing**
 - Status: Completed
 - Tests: 42 passing
 
-### Sprint 3: Categories & Budget Management 🚧
+### Sprint 3: Categories & Budget Management ✅
 - Duration: 2 weeks
-- Status: Not Started
-- Start Date: TBD
+- Status: Completed
+- Tests: 38 new tests (total: 107)
+- End Date: November 25, 2024
 
 ## 📖 Additional Resources
 
@@ -197,6 +201,6 @@ For issues or questions:
 
 ---
 
-**Last Updated**: November 24, 2024  
-**Version**: 1.0.0-dev  
+**Last Updated**: November 25, 2024  
+**Version**: 0.3.0-dev  
 **Maintained by**: Development Team

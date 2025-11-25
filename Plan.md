@@ -118,36 +118,49 @@ Build the foundation for recording and managing petty cash transactions.
 
 ---
 
-## Sprint 3: Categories & Budget Management (2 weeks)
+## Sprint 3: Categories & Budget Management (2 weeks) ✅ COMPLETED
 
 ### Sprint Goal
 Implement expense categorization and budget allocation system.
 
 ### User Stories
-- **CAT-001**: As an admin, I can create and manage expense categories
-- **CAT-002**: As an admin, I can set budget limits for each category
-- **CAT-003**: As a user, I can assign categories to transactions
-- **CAT-004**: As a user, I can see budget vs actual spending per category
-- **CAT-005**: As a system, I should alert when budget limit is reached
+- **CAT-001**: ✅ As an admin, I can create and manage expense categories
+- **CAT-002**: ✅ As an admin, I can set budget limits for each category
+- **CAT-003**: ✅ As a user, I can assign categories to transactions
+- **CAT-004**: ✅ As a user, I can see budget vs actual spending per category
+- **CAT-005**: ✅ As a system, I should alert when budget limit is reached
 
 ### Tasks
-- [ ] Create categories table migration
-- [ ] Create budgets table migration
-- [ ] Build category management interface
-- [ ] Create budget allocation interface
-- [ ] Add category dropdown to transaction form
-- [ ] Implement budget tracking logic
-- [ ] Create budget vs actual comparison view
-- [ ] Add budget alert notifications
-- [ ] Create budget period management
-- [ ] Write tests for budget calculations
+- [x] Create categories table migration
+- [x] Create budgets table migration
+- [x] Build category management interface
+- [x] Create budget allocation interface
+- [x] Add category dropdown to transaction form
+- [x] Implement budget tracking logic
+- [x] Create budget vs actual comparison view
+- [x] Add budget alert notifications
+- [x] Create budget period management
+- [x] Write tests for budget calculations
 
 ### Acceptance Criteria
-- Categories can be created and managed
-- Budgets can be set per category per period
-- Transactions are properly categorized
-- Budget tracking is accurate
-- Alerts work when limits are approached
+- ✅ Categories can be created and managed
+- ✅ Budgets can be set per category per period
+- ✅ Transactions are properly categorized
+- ✅ Budget tracking is accurate
+- ✅ Alerts work when limits are approached
+
+### Sprint Outcomes
+- **Status**: COMPLETED
+- **End Date**: November 25, 2024
+- **Test Coverage**: 107 passing tests (38 new tests added)
+- **Components Created**:
+  - Category CRUD pages (Index, Create, Edit, Show)
+  - Budget CRUD pages (Index, Create, Edit, Show, Overview)
+  - BudgetService for calculations
+  - Budget alerts widget on dashboard
+  - Category integration in transaction forms
+  - Sidebar navigation updated with Categories & Budgets
+- **Documentation**: Complete (see docs/07-development/sprint-planning/sprint-03.md)
 
 ---
 

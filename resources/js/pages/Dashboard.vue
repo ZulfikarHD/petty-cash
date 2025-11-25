@@ -2,12 +2,13 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { dashboard } from '@/routes';
 import { index as transactionsIndex, show as transactionsShow } from '@/actions/App/Http/Controllers/TransactionController';
+import { overview as budgetsOverview } from '@/actions/App/Http/Controllers/BudgetController';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Users, UserCheck, UserPlus, Receipt, Clock, TrendingUp, TrendingDown } from 'lucide-vue-next';
+import { Users, UserCheck, UserPlus, Receipt, Clock, TrendingUp, TrendingDown, AlertTriangle } from 'lucide-vue-next';
 import PlaceholderPattern from '../components/PlaceholderPattern.vue';
 
 interface TransactionSummary {
@@ -23,6 +24,22 @@ interface TransactionSummary {
     };
 }
 
+interface BudgetAlert {
+    id: number;
+    category: {
+        id: number;
+        name: string;
+        color: string;
+    };
+    amount: string;
+    spent_amount: number;
+    remaining_amount: number;
+    percentage_spent: number;
+    is_exceeded: boolean;
+    severity: 'danger' | 'warning';
+    message: string;
+}
+
 interface Props {
     stats?: {
         totalUsers?: number;
@@ -34,6 +51,7 @@ interface Props {
         todayCashOut?: number;
         recentTransactions?: TransactionSummary[];
     };
+    budgetAlerts?: BudgetAlert[];
 }
 
 defineProps<Props>();
@@ -193,6 +211,70 @@ const breadcrumbs: BreadcrumbItem[] = [
                     </CardContent>
                 </Card>
             </div>
+
+            <!-- Budget Alerts -->
+            <Card v-if="budgetAlerts && budgetAlerts.length > 0">
+                <CardHeader>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <AlertTriangle class="size-5 text-yellow-500" />
+                            <div>
+                                <CardTitle>Budget Alerts</CardTitle>
+                                <CardDescription>
+                                    Categories approaching or exceeding budget limits
+                                </CardDescription>
+                            </div>
+                        </div>
+                        <Link :href="budgetsOverview().url">
+                            <span class="text-sm text-primary hover:underline">View all budgets</span>
+                        </Link>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    <div class="space-y-4">
+                        <div
+                            v-for="alert in budgetAlerts"
+                            :key="alert.id"
+                            class="flex items-center justify-between rounded-lg border p-4"
+                            :class="
+                                alert.severity === 'danger'
+                                    ? 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950'
+                                    : 'border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950'
+                            "
+                        >
+                            <div class="flex items-center gap-3">
+                                <div
+                                    class="size-10 rounded-lg"
+                                    :style="{ backgroundColor: alert.category.color }"
+                                ></div>
+                                <div>
+                                    <div class="font-semibold">
+                                        {{ alert.category.name }}
+                                    </div>
+                                    <div class="text-sm text-muted-foreground">
+                                        {{ alert.message }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-semibold">
+                                    {{ formatCurrency(alert.spent_amount) }} /
+                                    {{ formatCurrency(alert.amount) }}
+                                </div>
+                                <Badge
+                                    :variant="
+                                        alert.severity === 'danger'
+                                            ? 'destructive'
+                                            : 'secondary'
+                                    "
+                                >
+                                    {{ alert.percentage_spent.toFixed(1) }}%
+                                </Badge>
+                            </div>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
 
             <!-- Recent Transactions -->
             <Card v-if="stats?.recentTransactions && stats.recentTransactions.length > 0">

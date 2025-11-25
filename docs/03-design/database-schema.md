@@ -13,30 +13,60 @@ The Petty Cash Book application uses **MySQL/MariaDB** as its database engine wi
 ## Entity Relationship Diagram
 
 ```
-┌──────────────┐         ┌──────────────────┐         ┌──────────────┐
-│    roles     │         │      users       │         │ transactions │
-├──────────────┤         ├──────────────────┤         ├──────────────┤
-│ id           │◄────────┤ id               │◄────────┤ id           │
-│ name         │         │ name             │         │ trans_number │
-│ guard_name   │         │ email            │         │ type         │
-│ created_at   │         │ password         │         │ amount       │
-│ updated_at   │         │ email_verified   │         │ description  │
-└──────────────┘         │ remember_token   │         │ trans_date   │
-                         │ created_at       │         │ category_id  │
-                         │ updated_at       │         │ vendor_id    │
-                         └──────────────────┘         │ user_id (FK) │
-                                  │                   │ status       │
-                                  │                   │ approved_by  │
-                                  │                   │ approved_at  │
-                                  │                   │ rejection    │
-                                  │                   │ notes        │
-                                  │                   │ created_at   │
-                                  │                   │ updated_at   │
-                                  │                   │ deleted_at   │
-                                  │                   └──────────────┘
-                                  │                          │
-                                  └──────────────────────────┘
-                                        (approver)
+┌──────────────┐         ┌──────────────────┐         ┌──────────────────┐
+│    roles     │         │      users       │         │   transactions   │
+├──────────────┤         ├──────────────────┤         ├──────────────────┤
+│ id           │◄────────┤ id               │◄────────┤ id               │
+│ name         │         │ name             │         │ trans_number     │
+│ guard_name   │         │ email            │         │ type             │
+│ created_at   │         │ password         │         │ amount           │
+│ updated_at   │         │ email_verified   │         │ description      │
+└──────────────┘         │ remember_token   │         │ trans_date       │
+                         │ created_at       │         │ category_id (FK) │──┐
+                         │ updated_at       │         │ vendor_id        │  │
+                         └──────────────────┘         │ user_id (FK)     │  │
+                                  │                   │ status           │  │
+                                  │                   │ approved_by      │  │
+                                  │                   │ approved_at      │  │
+                                  │                   │ rejection_reason │  │
+                                  │                   │ notes            │  │
+                                  │                   │ created_at       │  │
+                                  │                   │ updated_at       │  │
+                                  │                   │ deleted_at       │  │
+                                  │                   └──────────────────┘  │
+                                  │                          │              │
+                                  └──────────────────────────┘              │
+                                        (approver)                          │
+                                                                            │
+┌───────────────┐                                                          │
+│   categories  │◄─────────────────────────────────────────────────────────┘
+├───────────────┤
+│ id            │
+│ name          │
+│ slug          │◄──────┐
+│ description   │       │
+│ color         │       │
+│ is_active     │       │
+│ created_at    │       │
+│ updated_at    │       │
+│ deleted_at    │       │
+└───────────────┘       │
+       │                │
+       │                │
+       │                │
+       ▼                │
+┌───────────────┐       │
+│    budgets    │       │
+├───────────────┤       │
+│ id            │       │
+│ category_id   │───────┘ (FK)
+│ amount        │
+│ start_date    │
+│ end_date      │
+│ alert_thres   │
+│ created_at    │
+│ updated_at    │
+└───────────────┘
 
 
 ┌───────────────┐
@@ -106,7 +136,7 @@ Stores all petty cash transactions (cash in and cash out).
 | amount | decimal(15,2) | NO | - | Transaction amount |
 | description | text | NO | - | Transaction details |
 | transaction_date | date | NO | - | Date of transaction |
-| category_id | bigint | YES | NULL | FK to categories (future) |
+| category_id | bigint | YES | NULL | FK to categories |
 | vendor_id | bigint | YES | NULL | FK to vendors (future) |
 | user_id | bigint | NO | - | FK to users (creator) |
 | status | enum('pending','approved','rejected') | NO | 'pending' | Transaction status |
@@ -130,12 +160,13 @@ Stores all petty cash transactions (cash in and cash out).
 **Foreign Keys:**
 - `user_id` → `users(id)` ON DELETE CASCADE
 - `approved_by` → `users(id)` ON DELETE SET NULL
+- `category_id` → `categories(id)` ON DELETE SET NULL
 
 **Relationships:**
 - `belongsTo: User` (as creator)
 - `belongsTo: User` (as approver, via approved_by)
 - `morphMany: Media` (receipts)
-- `belongsTo: Category` (future)
+- `belongsTo: Category`
 - `belongsTo: Vendor` (future)
 
 **Business Rules:**
@@ -247,6 +278,8 @@ Stores permission definitions (Spatie Permission).
 - `view-users`, `create-users`, `edit-users`, `delete-users`
 - `view-transactions`, `create-transactions`, `edit-transactions`, `delete-transactions`
 - `approve-transactions`
+- `view-categories`, `manage-categories`
+- `view-budgets`, `manage-budgets`
 
 ---
 
@@ -307,13 +340,96 @@ Pivot table linking roles to permissions (Spatie Permission).
 
 ---
 
-## Future Tables (Planned)
+---
 
 ### categories
-Transaction categories for expense classification (Sprint 3).
+
+Stores expense categories for transaction classification.
+
+| Column | Type | Nullable | Default | Description |
+|--------|------|----------|---------|-------------|
+| id | bigint | NO | AUTO | Primary key |
+| name | varchar(255) | NO | - | Category name |
+| slug | varchar(255) | NO | - | URL-friendly slug (auto-generated) |
+| description | text | YES | NULL | Category description |
+| color | varchar(7) | NO | '#6366f1' | Hex color code for UI |
+| is_active | boolean | NO | TRUE | Active status |
+| created_at | timestamp | YES | NULL | Record creation |
+| updated_at | timestamp | YES | NULL | Last update |
+| deleted_at | timestamp | YES | NULL | Soft delete timestamp |
+
+**Indexes:**
+- `PRIMARY KEY (id)`
+- `UNIQUE (slug)`
+- `INDEX (is_active)`
+
+**Relationships:**
+- `hasMany: Transaction`
+- `hasMany: Budget`
+
+**Business Rules:**
+- Category name must be unique
+- Slug is auto-generated from name using Sluggable trait
+- Color must be valid hex code (#RRGGBB)
+- Soft deletes enabled for data integrity
+- Deactivated categories still visible in historical data
+- Deleting category sets transaction category_id to NULL
+
+**Scopes:**
+- `active()` - Where is_active = true
+
+---
 
 ### budgets
-Budget allocations per category (Sprint 3).
+
+Stores budget allocations per category with date ranges.
+
+| Column | Type | Nullable | Default | Description |
+|--------|------|----------|---------|-------------|
+| id | bigint | NO | AUTO | Primary key |
+| category_id | bigint | NO | - | FK to categories |
+| amount | decimal(15,2) | NO | - | Budget amount limit |
+| start_date | date | NO | - | Budget period start |
+| end_date | date | NO | - | Budget period end |
+| alert_threshold | decimal(5,2) | NO | 80.00 | Alert percentage (e.g., 80%) |
+| created_at | timestamp | YES | NULL | Record creation |
+| updated_at | timestamp | YES | NULL | Last update |
+
+**Indexes:**
+- `PRIMARY KEY (id)`
+- `INDEX (category_id)`
+- `UNIQUE (category_id, start_date, end_date)`
+
+**Foreign Keys:**
+- `category_id` → `categories(id)` ON DELETE CASCADE
+
+**Relationships:**
+- `belongsTo: Category`
+
+**Business Rules:**
+- One budget per category per time period
+- Date ranges cannot overlap for same category
+- Amount must be positive
+- Alert threshold is percentage (0-100)
+- Spent amount calculated from approved 'out' transactions
+- Budget status: 
+  - Green: < alert_threshold %
+  - Yellow: ≥ alert_threshold % and < 100%
+  - Red: ≥ 100%
+
+**Accessors:**
+- `spent_amount` - Calculated sum of approved 'out' transactions in period
+- `percentage_used` - (spent / amount) * 100
+- `remaining_amount` - amount - spent_amount
+
+**Scopes:**
+- `activePeriods()` - Where end_date ≥ today
+- `forCategory($categoryId)` - Where category_id = $categoryId
+- `inDateRange($start, $end)` - Overlapping date ranges
+
+---
+
+## Future Tables (Planned)
 
 ### vendors
 Vendor/supplier information (Sprint 8).
@@ -389,6 +505,6 @@ php artisan migrate:fresh --seed
 ---
 
 **Database Version**: MySQL 8.0 / MariaDB 10.x  
-**Last Updated**: November 24, 2024  
-**Schema Version**: 1.0.0 (Sprint 2)
+**Last Updated**: November 25, 2024  
+**Schema Version**: 1.1.0 (Sprint 3)
 

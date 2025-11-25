@@ -26,6 +26,7 @@ class StoreTransactionRequest extends FormRequest
             'amount' => ['required', 'numeric', 'min:0.01', 'max:9999999999999.99'],
             'description' => ['required', 'string', 'max:1000'],
             'transaction_date' => ['required', 'date', 'before_or_equal:today'],
+            'category_id' => ['nullable', 'exists:categories,id'],
             'notes' => ['nullable', 'string', 'max:2000'],
             'receipts' => ['nullable', 'array'],
             'receipts.*' => ['image', 'max:5120'], // 5MB max per image
@@ -51,6 +52,7 @@ class StoreTransactionRequest extends FormRequest
             'transaction_date.required' => 'The transaction date is required.',
             'transaction_date.date' => 'Please enter a valid date.',
             'transaction_date.before_or_equal' => 'The transaction date cannot be in the future.',
+            'category_id.exists' => 'The selected category does not exist.',
             'notes.max' => 'The notes must not exceed 2000 characters.',
             'receipts.*.image' => 'Each receipt must be an image file.',
             'receipts.*.max' => 'Each receipt must not exceed 5MB.',

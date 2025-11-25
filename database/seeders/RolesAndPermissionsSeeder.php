@@ -33,6 +33,20 @@ class RolesAndPermissionsSeeder extends Seeder
             'delete-transactions',
             'approve-transactions',
 
+            // Category management permissions
+            'manage-categories',
+            'view-categories',
+            'create-categories',
+            'edit-categories',
+            'delete-categories',
+
+            // Budget management permissions
+            'manage-budgets',
+            'view-budgets',
+            'create-budgets',
+            'edit-budgets',
+            'delete-budgets',
+
             // Reports permissions
             'view-reports',
             'export-reports',
@@ -63,6 +77,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'edit-transactions',
             'delete-transactions',
             'approve-transactions',
+            'view-categories',
+            'view-budgets',
             'view-reports',
             'export-reports',
         ]);
@@ -75,12 +91,15 @@ class RolesAndPermissionsSeeder extends Seeder
             'create-transactions',
             'edit-transactions',
             'delete-transactions',
+            'view-categories',
+            'view-budgets',
         ]);
 
         // Assign permissions to Requester
         $requester->givePermissionTo([
             'view-transactions',
             'create-transactions',
+            'view-categories',
         ]);
     }
 }

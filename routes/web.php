@@ -49,8 +49,16 @@ Route::get('dashboard', function () {
             ]);
     }
 
+    // Budget alerts
+    $budgetAlerts = [];
+    if (auth()->user()->can('view-budgets')) {
+        $budgetService = app(\App\Services\BudgetService::class);
+        $budgetAlerts = $budgetService->getBudgetAlerts()->take(5);
+    }
+
     return Inertia::render('Dashboard', [
         'stats' => $stats,
+        'budgetAlerts' => $budgetAlerts,
     ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
@@ -62,6 +70,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
 // Transaction Management Routes
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('transactions', \App\Http\Controllers\TransactionController::class);
+});
+
+// Category Management Routes
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::resource('categories', \App\Http\Controllers\CategoryController::class);
+});
+
+// Budget Management Routes
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('budgets/overview', [\App\Http\Controllers\BudgetController::class, 'overview'])->name('budgets.overview');
+    Route::resource('budgets', \App\Http\Controllers\BudgetController::class);
 });
 
 // My Profile Routes (renamed to avoid conflict with settings routes)
