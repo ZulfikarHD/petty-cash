@@ -15,9 +15,10 @@ import { dashboard } from '@/routes';
 import { index as transactionsIndex } from '@/actions/App/Http/Controllers/TransactionController';
 import { index as categoriesIndex } from '@/actions/App/Http/Controllers/CategoryController';
 import { index as budgetsIndex } from '@/actions/App/Http/Controllers/BudgetController';
+import { index as cashBalancesIndex } from '@/actions/App/Http/Controllers/CashBalanceController';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, Users, Receipt, Tags, Wallet } from 'lucide-vue-next';
+import { BookOpen, Folder, LayoutGrid, Users, Receipt, Tags, Wallet, DollarSign } from 'lucide-vue-next';
 import { computed } from 'vue';
 import AppLogo from './AppLogo.vue';
 
@@ -38,6 +39,13 @@ const mainNavItems = computed<NavItem[]>(() => {
             title: 'Transactions',
             href: transactionsIndex(),
             icon: Receipt,
+        });
+
+        // Add Cash Balance menu item (uses same permission as transactions)
+        items.push({
+            title: 'Cash Balance',
+            href: cashBalancesIndex(),
+            icon: DollarSign,
         });
     }
 

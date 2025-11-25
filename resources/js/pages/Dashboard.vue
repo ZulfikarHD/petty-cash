@@ -8,7 +8,7 @@ import { Head, Link, usePage } from '@inertiajs/vue3';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Users, UserCheck, UserPlus, Receipt, Clock, TrendingUp, TrendingDown, AlertTriangle } from 'lucide-vue-next';
+import { Users, UserCheck, UserPlus, Receipt, Clock, TrendingUp, TrendingDown, AlertTriangle, DollarSign, Wallet } from 'lucide-vue-next';
 import PlaceholderPattern from '../components/PlaceholderPattern.vue';
 
 interface TransactionSummary {
@@ -50,6 +50,9 @@ interface Props {
         todayCashIn?: number;
         todayCashOut?: number;
         recentTransactions?: TransactionSummary[];
+        currentBalance?: number;
+        lowBalanceAlert?: boolean;
+        lowBalanceThreshold?: number;
     };
     budgetAlerts?: BudgetAlert[];
 }
@@ -140,6 +143,35 @@ const breadcrumbs: BreadcrumbItem[] = [
                         <div class="text-2xl font-bold">{{ stats.recentUsers || 0 }}</div>
                         <p class="text-xs text-muted-foreground">
                             Registered this month
+                        </p>
+                    </CardContent>
+                </Card>
+            </div>
+
+            <!-- Current Balance Card (prominent display) -->
+            <div v-if="stats && page.props.auth?.can?.viewTransactions" class="grid auto-rows-min gap-4 md:grid-cols-1">
+                <Card :class="{ 'border-destructive': stats.lowBalanceAlert }">
+                    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle class="text-sm font-medium">
+                            Current Cash Balance
+                        </CardTitle>
+                        <div class="flex items-center gap-2">
+                            <Link href="/cash-balances" class="text-xs text-primary hover:underline">
+                                Manage Balance
+                            </Link>
+                            <Wallet class="size-4 text-muted-foreground" />
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <div class="text-3xl font-bold" :class="{ 'text-destructive': stats.lowBalanceAlert }">
+                            {{ formatCurrency(stats.currentBalance || 0) }}
+                        </div>
+                        <div v-if="stats.lowBalanceAlert" class="mt-2 flex items-center gap-1 text-sm text-destructive">
+                            <AlertTriangle class="size-4" />
+                            Low balance alert: Below {{ formatCurrency(stats.lowBalanceThreshold || 0) }} threshold
+                        </div>
+                        <p v-else class="text-xs text-muted-foreground">
+                            Total available petty cash
                         </p>
                     </CardContent>
                 </Card>

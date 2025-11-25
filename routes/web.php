@@ -47,6 +47,13 @@ Route::get('dashboard', function () {
                     'name' => $transaction->user->name,
                 ],
             ]);
+
+        // Cash balance stats
+        $balanceService = app(\App\Services\BalanceService::class);
+        $currentBalance = $balanceService->getCurrentBalance();
+        $stats['currentBalance'] = $currentBalance;
+        $stats['lowBalanceAlert'] = $balanceService->needsLowBalanceAlert($currentBalance);
+        $stats['lowBalanceThreshold'] = $balanceService->getLowBalanceThreshold();
     }
 
     // Budget alerts
@@ -81,6 +88,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('budgets/overview', [\App\Http\Controllers\BudgetController::class, 'overview'])->name('budgets.overview');
     Route::resource('budgets', \App\Http\Controllers\BudgetController::class);
+});
+
+// Cash Balance Management Routes
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('cash-balances/{cashBalance}/reconcile', [\App\Http\Controllers\CashBalanceController::class, 'reconcile'])->name('cash-balances.reconcile');
+    Route::post('cash-balances/{cashBalance}/reconciliation', [\App\Http\Controllers\CashBalanceController::class, 'storeReconciliation'])->name('cash-balances.store-reconciliation');
+    Route::resource('cash-balances', \App\Http\Controllers\CashBalanceController::class)->except(['edit', 'update']);
 });
 
 // My Profile Routes (renamed to avoid conflict with settings routes)

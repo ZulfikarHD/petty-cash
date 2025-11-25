@@ -15,6 +15,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RolesAndPermissionsSeeder::class,
             UserSeeder::class,
+            // DemoDataSeeder::class, // Uncomment to seed demo data (categories, budgets, transactions, cash balances)
+            // CashBalanceSeeder::class, // Uncomment to seed only cash balance data
         ]);
     }
 }

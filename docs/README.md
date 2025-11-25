@@ -28,14 +28,14 @@ Welcome to the Petty Cash Book application documentation. This system helps orga
 ## 🏗️ Project Overview
 
 - **Project Name**: Petty Cash Book Application
-- **Version**: 0.3.0 (In Development)
-- **Status**: Sprint 3 Completed ✅
+- **Version**: 0.4.0 (In Development)
+- **Status**: Sprint 4 Completed ✅
 - **Tech Stack**: Laravel 12, Vue 3, Inertia.js, Tailwind CSS
 - **Last Updated**: November 25, 2024
 
 ## 🎯 Key Features
 
-### ✅ Completed (Sprints 1, 2 & 3)
+### ✅ Completed (Sprints 1, 2, 3 & 4)
 - User authentication with email verification
 - Role-based access control (Admin, Accountant, Cashier, Requester)
 - User management interface
@@ -48,10 +48,14 @@ Welcome to the Petty Cash Book application documentation. This system helps orga
 - **Budget tracking** (real-time budget vs actual spending)
 - **Budget alerts** (visual indicators and dashboard notifications)
 - Category assignment to transactions
-- Comprehensive testing (107 tests passing)
+- **Cash Balance tracking** (real-time balance from approved transactions)
+- **Opening balance management** (period-based balance tracking)
+- **Cash reconciliation** (reconcile physical cash with system balance)
+- **Balance history** (daily snapshots and period tracking)
+- **Low balance alerts** (configurable threshold notifications)
+- Comprehensive testing (144 tests passing)
 
 ### 🚧 In Progress
-- Cash Balance & Reconciliation (Sprint 4)
 - Approval Workflow System (Sprint 5)
 
 ### 📅 Planned
@@ -126,7 +130,7 @@ php artisan test --coverage
 php artisan test --filter=Transaction
 ```
 
-Current test coverage: **107 tests, 254 assertions passing**
+Current test coverage: **144 tests, 354+ assertions passing**
 
 ## 📦 Tech Stack
 
@@ -180,6 +184,12 @@ Current test coverage: **107 tests, 254 assertions passing**
 - Tests: 38 new tests (total: 107)
 - End Date: November 25, 2024
 
+### Sprint 4: Cash Balance & Reconciliation ✅
+- Duration: 2 weeks
+- Status: Completed
+- Tests: 37 new tests (total: 144)
+- End Date: November 25, 2024
+
 ## 📖 Additional Resources
 
 - [Project Charter](01-project-overview/project-charter.md)
@@ -202,5 +212,5 @@ For issues or questions:
 ---
 
 **Last Updated**: November 25, 2024  
-**Version**: 0.3.0-dev  
+**Version**: 0.4.0-dev  
 **Maintained by**: Development Team

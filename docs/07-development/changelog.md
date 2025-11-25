@@ -8,13 +8,92 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- Cash balance tracking and reconciliation
 - Approval workflow system
 - Advanced reporting and analytics
 - Vendor management
 - Audit trail and activity logging
 - Multi-currency support
 - Mobile optimizations
+
+---
+
+## [0.4.0] - 2024-11-25
+
+### Added - Sprint 4: Cash Balance & Reconciliation
+
+#### Backend
+- **Cash Balance Module**
+  - `cash_balances` table with soft deletes
+  - `CashBalance` model with relationships
+  - Period-based balance tracking (start/end dates)
+  - Opening balance management
+  - Closing balance on reconciliation
+  - Discrepancy tracking with notes
+  - CashBalanceController with CRUD + reconciliation
+  - StoreCashBalanceRequest validation
+  - ReconcileBalanceRequest validation
+
+- **Balance Service**
+  - `BalanceService` for all calculations
+  - `getCurrentBalance()` - Real-time balance calculation
+  - `calculatePeriodBalance()` - Period-specific balance
+  - `getBalanceHistory()` - Daily balance snapshots
+  - `isLowBalance()` - Threshold checking
+  - `hasOverlappingPeriod()` - Date overlap validation
+  - `getTransactionsForPeriod()` - Period transactions
+  - `getTodaySummary()` - Daily cash in/out
+
+- **Configuration**
+  - `config/cash.php` for cash settings
+  - `LOW_BALANCE_THRESHOLD` environment variable
+  - Default threshold: 100,000 IDR
+
+#### Frontend
+- **Cash Balance Pages**
+  - Index page with period list and filters
+  - Current balance widget with low balance alert
+  - Create form for new balance periods
+  - Show page with period details and transactions
+  - Reconcile form with discrepancy calculation
+  - Daily balance history table
+  - Status filtering (active, reconciled, upcoming, expired)
+
+- **Dashboard Integration**
+  - Current Balance card with Wallet icon
+  - Low balance alert with visual indicator
+  - Real-time balance display
+  - Link to Cash Balance management
+
+- **Navigation**
+  - Added "Cash Balance" to sidebar (DollarSign icon)
+  - Permission-based visibility
+  - Wayfinder route integration
+
+#### Testing
+- 37 new tests added (total: 144 tests)
+- CashBalanceCRUDTest - 16 tests
+- BalanceCalculationTest - 13 tests
+- CashBalanceAuthorizationTest - 8 tests
+- All tests passing with 354+ assertions
+
+### Fixed
+- Balance calculation only includes approved transactions
+- Period overlap validation prevents duplicate periods
+- Reconciliation requires notes when discrepancy exists
+- Cannot delete reconciled balance periods
+
+### Changed
+- Dashboard displays current balance prominently
+- HandleInertiaRequests shares cash balance permissions
+- Routes updated with cash balance endpoints
+- Transaction model scopes used in balance calculations
+
+### Technical
+- Implemented BalanceService for calculation separation
+- Added unique constraint on start_date
+- Added compound index on (start_date, end_date)
+- Optimized queries with date range filtering
+- Soft deletes enabled for audit trail
 
 ---
 
@@ -284,6 +363,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 | Version | Date | Sprint | Status | Tests |
 |---------|------|--------|--------|-------|
+| 0.4.0 | 2024-11-25 | Sprint 4 | ✅ Completed | 144 passing |
 | 0.3.0 | 2024-11-25 | Sprint 3 | ✅ Completed | 107 passing |
 | 0.2.0 | 2024-11-24 | Sprint 2 | ✅ Completed | 69 passing |
 | 0.1.0 | 2024-11-10 | Sprint 1 | ✅ Completed | 27 passing |
@@ -292,6 +372,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 ## Migration Guide
+
+### Upgrading from 0.3.0 to 0.4.0
+
+1. **Run new migrations:**
+   ```bash
+   php artisan migrate
+   ```
+
+2. **Add environment variable:**
+   ```bash
+   # Add to .env file
+   LOW_BALANCE_THRESHOLD=100000
+   ```
+
+3. **Generate Wayfinder routes:**
+   ```bash
+   php artisan wayfinder:generate
+   ```
+
+4. **Rebuild frontend assets:**
+   ```bash
+   yarn install
+   yarn build
+   ```
+
+5. **Clear caches:**
+   ```bash
+   php artisan optimize:clear
+   ```
 
 ### Upgrading from 0.2.0 to 0.3.0
 
@@ -360,6 +469,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Breaking Changes
 
+### 0.4.0
+- None (additive changes only)
+- Cash balance is calculated in real-time from transactions
+
 ### 0.3.0
 - None (additive changes only)
 - Transaction category is optional (nullable)
@@ -373,6 +486,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 ## Security Updates
+
+### 0.4.0
+- Cash balance authorization checks
+- Reconciliation permission enforcement
+- Period overlap validation
+- Cannot delete reconciled periods (data integrity)
 
 ### 0.3.0
 - Category and budget authorization checks
@@ -396,22 +515,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Known Issues
 
-### Current Version (0.3.0)
+### Current Version (0.4.0)
 - Vendor dropdown not implemented yet (Sprint 8)
 - No batch operations for transactions yet
 - No Excel export functionality yet
 - Budget email alerts not implemented (in-app only)
 - No budget templates or rollover feature
+- Balance adjustment transactions not yet implemented
+- No balance trend charts
 
 ---
 
-## Upcoming in Next Release (0.4.0)
+## Upcoming in Next Release (0.5.0)
 
-- **Cash Balance Tracking**: Real-time balance calculations
-- **Opening Balance**: Set starting balance for periods
-- **Cash Reconciliation**: Reconcile physical cash with system
-- **Balance History**: Track balance over time
-- **Low Balance Alerts**: Notifications when cash is low
+- **Approval Workflow**: Multi-level approval for transactions
+- **Pending Approvals Dashboard**: View and manage pending requests
+- **Approval History**: Track approval/rejection history
+- **Email Notifications**: Alert approvers of pending requests
+- **Approval Delegation**: Delegate approval authority
 
 **Target Release Date**: December 22, 2024
 
@@ -428,5 +549,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **Documentation Updated**: November 25, 2024  
 **Project Status**: Active Development  
-**Current Version**: 0.3.0
+**Current Version**: 0.4.0
 

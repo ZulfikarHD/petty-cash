@@ -429,13 +429,58 @@ Stores budget allocations per category with date ranges.
 
 ---
 
+### cash_balances
+
+Stores cash balance periods for tracking and reconciliation.
+
+| Column | Type | Nullable | Default | Description |
+|--------|------|----------|---------|-------------|
+| id | bigint | NO | AUTO | Primary key |
+| opening_balance | decimal(15,2) | NO | - | Opening balance amount |
+| closing_balance | decimal(15,2) | YES | NULL | Closing balance (set on reconciliation) |
+| start_date | date | NO | - | Period start date |
+| end_date | date | NO | - | Period end date |
+| reconciled_amount | decimal(15,2) | YES | NULL | Actual cash on hand |
+| discrepancy_notes | text | YES | NULL | Notes for any discrepancy |
+| reconciled_by | bigint | YES | NULL | FK to users (reconciler) |
+| reconciled_at | timestamp | YES | NULL | Reconciliation timestamp |
+| created_at | timestamp | YES | NULL | Record creation |
+| updated_at | timestamp | YES | NULL | Last update |
+| deleted_at | timestamp | YES | NULL | Soft delete timestamp |
+
+**Indexes:**
+- `PRIMARY KEY (id)`
+- `UNIQUE (start_date)`
+- `INDEX (start_date, end_date)`
+
+**Foreign Keys:**
+- `reconciled_by` → `users(id)` ON DELETE SET NULL
+
+**Relationships:**
+- `belongsTo: User` (as reconciler, via reconciled_by)
+
+**Business Rules:**
+- Period dates cannot overlap with existing periods
+- Opening balance comes from previous period's closing balance
+- Reconciliation requires actual balance amount
+- Discrepancy notes required when actual ≠ calculated
+- Only non-reconciled periods can be deleted
+- Soft deletes enabled for audit trail
+
+**Scopes:**
+- `active()` - Current active period (contains today's date)
+- `upcoming()` - Future periods
+- `reconciled()` - Where reconciled_at is not null
+
+**Accessors:**
+- `status` - Returns 'reconciled', 'upcoming', 'expired', or 'active'
+
+---
+
 ## Future Tables (Planned)
 
 ### vendors
 Vendor/supplier information (Sprint 8).
-
-### cash_balances
-Cash balance tracking and reconciliation (Sprint 4).
 
 ### approvals
 Multi-level approval workflow records (Sprint 5).
@@ -506,5 +551,5 @@ php artisan migrate:fresh --seed
 
 **Database Version**: MySQL 8.0 / MariaDB 10.x  
 **Last Updated**: November 25, 2024  
-**Schema Version**: 1.1.0 (Sprint 3)
+**Schema Version**: 1.2.0 (Sprint 4)
 
