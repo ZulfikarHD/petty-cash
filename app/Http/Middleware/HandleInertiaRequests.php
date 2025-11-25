@@ -49,6 +49,7 @@ class HandleInertiaRequests extends Middleware
                     'manageUsers' => $request->user()->can('manage-users'),
                     'viewTransactions' => $request->user()->can('view-transactions'),
                     'createTransactions' => $request->user()->can('create-transactions'),
+                    'approveTransactions' => $request->user()->can('approve-transactions'),
                     'viewCategories' => $request->user()->can('view-categories'),
                     'manageCategories' => $request->user()->can('manage-categories'),
                     'viewBudgets' => $request->user()->can('view-budgets'),

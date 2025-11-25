@@ -2,13 +2,14 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { dashboard } from '@/routes';
 import { index as transactionsIndex, show as transactionsShow } from '@/actions/App/Http/Controllers/TransactionController';
+import { index as approvalsIndex } from '@/actions/App/Http/Controllers/ApprovalController';
 import { overview as budgetsOverview } from '@/actions/App/Http/Controllers/BudgetController';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Users, UserCheck, UserPlus, Receipt, Clock, TrendingUp, TrendingDown, AlertTriangle, DollarSign, Wallet } from 'lucide-vue-next';
+import { Users, UserCheck, UserPlus, Receipt, Clock, TrendingUp, TrendingDown, AlertTriangle, DollarSign, Wallet, ClipboardCheck, FileCheck } from 'lucide-vue-next';
 import PlaceholderPattern from '../components/PlaceholderPattern.vue';
 
 interface TransactionSummary {
@@ -40,6 +41,11 @@ interface BudgetAlert {
     message: string;
 }
 
+interface ApprovalStats {
+    pendingApprovals?: number;
+    myPendingSubmissions?: number;
+}
+
 interface Props {
     stats?: {
         totalUsers?: number;
@@ -55,6 +61,7 @@ interface Props {
         lowBalanceThreshold?: number;
     };
     budgetAlerts?: BudgetAlert[];
+    approvalStats?: ApprovalStats;
 }
 
 defineProps<Props>();
@@ -240,6 +247,51 @@ const breadcrumbs: BreadcrumbItem[] = [
                         <p class="text-xs text-muted-foreground">
                             Cash spent today
                         </p>
+                    </CardContent>
+                </Card>
+            </div>
+
+            <!-- Approval Stats -->
+            <div v-if="approvalStats && (approvalStats.pendingApprovals !== undefined || approvalStats.myPendingSubmissions !== undefined)" class="grid auto-rows-min gap-4 md:grid-cols-2">
+                <!-- Pending Approvals (for approvers) -->
+                <Card v-if="approvalStats.pendingApprovals !== undefined" :class="{ 'border-yellow-500': approvalStats.pendingApprovals > 0 }">
+                    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle class="text-sm font-medium">
+                            Pending Approvals
+                        </CardTitle>
+                        <ClipboardCheck class="size-4 text-yellow-600" />
+                    </CardHeader>
+                    <CardContent>
+                        <div class="text-2xl font-bold" :class="{ 'text-yellow-600': approvalStats.pendingApprovals > 0 }">
+                            {{ approvalStats.pendingApprovals }}
+                        </div>
+                        <p class="text-xs text-muted-foreground">
+                            Transactions awaiting your review
+                        </p>
+                        <Link v-if="approvalStats.pendingApprovals > 0" :href="approvalsIndex().url" class="mt-2 inline-block text-sm text-primary hover:underline">
+                            Review now →
+                        </Link>
+                    </CardContent>
+                </Card>
+
+                <!-- My Pending Submissions (for requesters) -->
+                <Card v-if="approvalStats.myPendingSubmissions !== undefined">
+                    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle class="text-sm font-medium">
+                            My Pending Requests
+                        </CardTitle>
+                        <FileCheck class="size-4 text-blue-600" />
+                    </CardHeader>
+                    <CardContent>
+                        <div class="text-2xl font-bold text-blue-600">
+                            {{ approvalStats.myPendingSubmissions }}
+                        </div>
+                        <p class="text-xs text-muted-foreground">
+                            Your transactions awaiting approval
+                        </p>
+                        <Link :href="transactionsIndex().url + '?status=pending'" class="mt-2 inline-block text-sm text-primary hover:underline">
+                            View requests →
+                        </Link>
                     </CardContent>
                 </Card>
             </div>

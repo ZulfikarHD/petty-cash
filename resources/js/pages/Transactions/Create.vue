@@ -3,7 +3,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { dashboard } from '@/routes';
 import { index as transactionsIndex, store as transactionsStore } from '@/actions/App/Http/Controllers/TransactionController';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,9 +23,10 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import InputError from '@/components/InputError.vue';
-import { ref } from 'vue';
-import { Upload, X } from 'lucide-vue-next';
+import { ref, computed } from 'vue';
+import { Upload, X, Info } from 'lucide-vue-next';
 
 interface Category {
     id: number;
@@ -39,6 +40,13 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+const page = usePage();
+
+// Check if user is a Requester
+const isRequester = computed(() => {
+    const user = page.props.auth?.user as { roles?: { name: string }[] } | undefined;
+    return user?.roles?.some(role => role.name === 'Requester') ?? false;
+});
 
 const form = ref({
     type: 'out',
@@ -47,6 +55,7 @@ const form = ref({
     transaction_date: new Date().toISOString().split('T')[0],
     category_id: null as string | null,
     notes: '',
+    approval_notes: '',
     receipts: [] as File[],
 });
 
@@ -104,6 +113,9 @@ function submit() {
         formData.append('category_id', form.value.category_id);
     }
     formData.append('notes', form.value.notes);
+    if (form.value.approval_notes) {
+        formData.append('approval_notes', form.value.approval_notes);
+    }
 
     form.value.receipts.forEach((file, index) => {
         formData.append(`receipts[${index}]`, file);
@@ -134,6 +146,15 @@ function submit() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
+                    <!-- Approval Notice for Requesters -->
+                    <Alert v-if="isRequester" class="mb-6">
+                        <Info class="size-4" />
+                        <AlertTitle>Approval Required</AlertTitle>
+                        <AlertDescription>
+                            Your transaction will be submitted for approval. An approver will review and approve or reject it.
+                        </AlertDescription>
+                    </Alert>
+
                     <form @submit.prevent="submit" class="space-y-6">
                         <!-- Transaction Type -->
                         <div class="space-y-2">
@@ -233,6 +254,21 @@ function submit() {
                             <InputError :message="errors.notes" />
                         </div>
 
+                        <!-- Approval Notes (for Requesters) -->
+                        <div v-if="isRequester" class="space-y-2">
+                            <Label for="approval_notes">Approval Notes (Optional)</Label>
+                            <Textarea
+                                id="approval_notes"
+                                v-model="form.approval_notes"
+                                rows="2"
+                                placeholder="Add notes for the approver..."
+                            />
+                            <p class="text-xs text-muted-foreground">
+                                These notes will be visible to the approver when reviewing your transaction.
+                            </p>
+                            <InputError :message="errors.approval_notes" />
+                        </div>
+
                         <!-- Receipt Upload -->
                         <div class="space-y-2">
                             <Label for="receipts">Receipt Images (Optional)</Label>
@@ -286,7 +322,7 @@ function submit() {
                                 type="submit"
                                 :disabled="processing"
                             >
-                                {{ processing ? 'Creating...' : 'Create Transaction' }}
+                                {{ processing ? (isRequester ? 'Submitting...' : 'Creating...') : (isRequester ? 'Submit for Approval' : 'Create Transaction') }}
                             </Button>
                             <Link :href="transactionsIndex().url">
                                 <Button type="button" variant="outline">

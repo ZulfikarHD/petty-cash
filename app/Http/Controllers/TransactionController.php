@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreTransactionRequest;
 use App\Http\Requests\UpdateTransactionRequest;
 use App\Models\Transaction;
+use App\Services\ApprovalService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -14,6 +15,10 @@ use Inertia\Response;
 class TransactionController extends Controller
 {
     use AuthorizesRequests;
+
+    public function __construct(
+        protected ApprovalService $approvalService
+    ) {}
 
     /**
      * Display a listing of the resource.
@@ -91,6 +96,12 @@ class TransactionController extends Controller
      */
     public function store(StoreTransactionRequest $request): RedirectResponse
     {
+        $user = $request->user();
+        $isRequester = $user->isRequester();
+
+        // Requesters start with pending status, others get approved
+        $status = $isRequester ? 'pending' : 'approved';
+
         $transaction = Transaction::create([
             'type' => $request->type,
             'amount' => $request->amount,
@@ -98,8 +109,10 @@ class TransactionController extends Controller
             'transaction_date' => $request->transaction_date,
             'category_id' => $request->category_id,
             'notes' => $request->notes,
-            'user_id' => $request->user()->id,
-            'status' => 'pending',
+            'user_id' => $user->id,
+            'status' => $status,
+            'approved_by' => $isRequester ? null : $user->id,
+            'approved_at' => $isRequester ? null : now(),
         ]);
 
         // Handle receipt uploads
@@ -108,6 +121,17 @@ class TransactionController extends Controller
                 $transaction->addMedia($receipt)
                     ->toMediaCollection('receipts');
             }
+        }
+
+        // If user is a Requester, submit for approval
+        if ($isRequester) {
+            $this->approvalService->submitForApproval(
+                $transaction,
+                $request->input('approval_notes')
+            );
+
+            return redirect()->route('transactions.index')
+                ->with('success', 'Transaction submitted for approval.');
         }
 
         return redirect()->route('transactions.index')
@@ -121,7 +145,7 @@ class TransactionController extends Controller
     {
         $this->authorize('view-transactions');
 
-        $transaction->load(['user:id,name,email', 'approver:id,name', 'media']);
+        $transaction->load(['user:id,name,email', 'approver:id,name', 'media', 'approval.submittedBy', 'approval.reviewedBy']);
 
         return Inertia::render('Transactions/Show', [
             'transaction' => $transaction,
@@ -133,6 +157,7 @@ class TransactionController extends Controller
                     'size' => $media->size,
                 ];
             }),
+            'approval' => $transaction->approval,
         ]);
     }
 

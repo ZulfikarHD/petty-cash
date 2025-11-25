@@ -2,7 +2,7 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { dashboard } from '@/routes';
 import { index as transactionsIndex, show as transactionsShow, edit as transactionsEdit } from '@/actions/App/Http/Controllers/TransactionController';
-import { type BreadcrumbItem, type Transaction, type Receipt } from '@/types';
+import { type BreadcrumbItem, type Transaction, type Receipt, type Approval, type User } from '@/types';
 import { Head, Link } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,16 +13,28 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { Pencil, ArrowLeft, Download } from 'lucide-vue-next';
+import { Pencil, ArrowLeft, Download, Clock, CheckCircle, XCircle, User as UserIcon } from 'lucide-vue-next';
 import { ref } from 'vue';
 import {
     Dialog,
     DialogContent,
 } from '@/components/ui/dialog';
 
+interface ApprovalData {
+    id: number;
+    status: 'pending' | 'approved' | 'rejected';
+    notes: string | null;
+    rejection_reason: string | null;
+    submitted_at: string;
+    reviewed_at: string | null;
+    submitted_by_user?: User;
+    reviewed_by_user?: User;
+}
+
 interface Props {
     transaction: Transaction;
     receipts: Receipt[];
+    approval?: ApprovalData | null;
 }
 
 const props = defineProps<Props>();
@@ -241,6 +253,81 @@ function formatFileSize(bytes: number) {
                                 </p>
                                 <p class="mt-1 text-sm text-destructive">
                                     {{ transaction.rejection_reason }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <!-- Approval History -->
+            <Card v-if="approval">
+                <CardHeader>
+                    <CardTitle class="flex items-center gap-2">
+                        <Clock class="size-5" />
+                        Approval History
+                    </CardTitle>
+                    <CardDescription>
+                        Approval workflow timeline for this transaction
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div class="relative space-y-4">
+                        <!-- Timeline -->
+                        <div class="absolute left-4 top-0 h-full w-0.5 bg-border" />
+
+                        <!-- Submitted -->
+                        <div class="relative flex items-start gap-4 pl-10">
+                            <div class="absolute left-2 flex size-5 items-center justify-center rounded-full bg-blue-500 text-white">
+                                <UserIcon class="size-3" />
+                            </div>
+                            <div>
+                                <p class="font-medium">Submitted for Approval</p>
+                                <p class="text-sm text-muted-foreground">
+                                    {{ formatDateTime(approval.submitted_at) }}
+                                </p>
+                                <p v-if="approval.notes" class="mt-2 text-sm bg-muted p-2 rounded">
+                                    "{{ approval.notes }}"
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Reviewed (if applicable) -->
+                        <div v-if="approval.reviewed_at" class="relative flex items-start gap-4 pl-10">
+                            <div
+                                :class="[
+                                    'absolute left-2 flex size-5 items-center justify-center rounded-full text-white',
+                                    approval.status === 'approved' ? 'bg-green-500' : 'bg-red-500'
+                                ]"
+                            >
+                                <CheckCircle v-if="approval.status === 'approved'" class="size-3" />
+                                <XCircle v-else class="size-3" />
+                            </div>
+                            <div>
+                                <p class="font-medium">
+                                    {{ approval.status === 'approved' ? 'Approved' : 'Rejected' }}
+                                    <span v-if="approval.reviewed_by_user" class="font-normal text-muted-foreground">
+                                        by {{ approval.reviewed_by_user.name }}
+                                    </span>
+                                </p>
+                                <p class="text-sm text-muted-foreground">
+                                    {{ formatDateTime(approval.reviewed_at) }}
+                                </p>
+                                <p v-if="approval.rejection_reason" class="mt-2 text-sm bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300 p-2 rounded">
+                                    Reason: {{ approval.rejection_reason }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Pending (if still pending) -->
+                        <div v-else class="relative flex items-start gap-4 pl-10">
+                            <div class="absolute left-2 flex size-5 items-center justify-center rounded-full bg-yellow-500 text-white">
+                                <Clock class="size-3" />
+                            </div>
+                            <div>
+                                <p class="font-medium text-yellow-600">Awaiting Approval</p>
+                                <p class="text-sm text-muted-foreground">
+                                    Pending review by an approver
                                 </p>
                             </div>
                         </div>

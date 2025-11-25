@@ -59,12 +59,14 @@ class TransactionCRUDTest extends TestCase
         ]);
 
         $response->assertRedirect('/transactions');
+        // Cashier transactions are auto-approved
         $this->assertDatabaseHas('transactions', [
             'type' => 'in',
             'amount' => 100000,
             'description' => 'Cash received from customer',
-            'status' => 'pending',
+            'status' => 'approved',
             'user_id' => $cashier->id,
+            'approved_by' => $cashier->id,
         ]);
 
         // Verify transaction number was generated
@@ -86,11 +88,12 @@ class TransactionCRUDTest extends TestCase
         ]);
 
         $response->assertRedirect('/transactions');
+        // Cashier transactions are auto-approved
         $this->assertDatabaseHas('transactions', [
             'type' => 'out',
             'amount' => 50000,
             'description' => 'Office supplies purchase',
-            'status' => 'pending',
+            'status' => 'approved',
         ]);
     }
 

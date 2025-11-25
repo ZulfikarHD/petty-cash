@@ -66,4 +66,52 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(Transaction::class, 'approved_by');
     }
+
+    /**
+     * Get the approval requests submitted by the user.
+     */
+    public function submittedApprovals()
+    {
+        return $this->hasMany(Approval::class, 'submitted_by');
+    }
+
+    /**
+     * Get the approvals reviewed by the user.
+     */
+    public function reviewedApprovals()
+    {
+        return $this->hasMany(Approval::class, 'reviewed_by');
+    }
+
+    /**
+     * Get the user's app notifications.
+     */
+    public function appNotifications()
+    {
+        return $this->hasMany(AppNotification::class);
+    }
+
+    /**
+     * Get the user's unread app notifications count.
+     */
+    public function unreadNotificationsCount(): int
+    {
+        return $this->appNotifications()->unread()->count();
+    }
+
+    /**
+     * Check if user is a Requester role.
+     */
+    public function isRequester(): bool
+    {
+        return $this->hasRole('Requester');
+    }
+
+    /**
+     * Check if user can approve transactions.
+     */
+    public function canApproveTransactions(): bool
+    {
+        return $this->can('approve-transactions');
+    }
 }

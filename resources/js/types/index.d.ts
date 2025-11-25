@@ -114,4 +114,46 @@ export interface TransactionSummary {
     net_balance: number;
 }
 
+export type ApprovalStatus = 'pending' | 'approved' | 'rejected';
+
+export interface Approval {
+    id: number;
+    transaction_id: number;
+    submitted_by: number;
+    reviewed_by: number | null;
+    status: ApprovalStatus;
+    notes: string | null;
+    rejection_reason: string | null;
+    submitted_at: string;
+    reviewed_at: string | null;
+    created_at: string;
+    updated_at: string;
+    transaction?: Transaction;
+    submitted_by_user?: User;
+    reviewed_by_user?: User;
+}
+
+export interface AppNotification {
+    id: number;
+    user_id: number;
+    type: string;
+    title: string;
+    message: string;
+    action_url: string | null;
+    read_at: string | null;
+    data: Record<string, unknown> | null;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface Category {
+    id: number;
+    name: string;
+    description: string | null;
+    color: string | null;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
 export type BreadcrumbItemType = BreadcrumbItem;
